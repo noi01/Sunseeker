@@ -1,0 +1,7 @@
+README.md
+setup.py
+gym_sunday3.egg-info/PKG-INFO
+gym_sunday3.egg-info/SOURCES.txt
+gym_sunday3.egg-info/dependency_links.txt
+gym_sunday3.egg-info/requires.txt
+gym_sunday3.egg-info/top_level.txt
