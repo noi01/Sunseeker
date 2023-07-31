@@ -24,56 +24,19 @@ Sensor1 = board.get_pin('a:0:i')
 Sensor2 = board.get_pin('a:2:i')
 
 time.sleep(2)
+#servo = board.get_pin('d:9:s')  
 
-DC_motor_pin3 = board.get_pin('d:3:o')
-DC_motor_pin2 = board.get_pin('d:2:o')
-
-def motorOFF():
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(1)
-        time.sleep(0.01)
-        
-def motorCW():
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(1)
-        time.sleep(0.01)
-        
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(0)
-        
-        time.sleep(1)
-        
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(1)
-        
-        time.sleep(1)
-        
-def motorCWW():
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(1)
-        time.sleep(0.01)
-        
-        DC_motor_pin3.write(0)
-        DC_motor_pin2.write(1)
-        
-        time.sleep(1)
-        
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(1)
-        
-        time.sleep(1)
-
-JointPosition = 0
-
-motorCWW()
-motorCWW()
+servo = board.get_pin('d:9:s')  
+servo.write(90)
 
 class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
 
-    #metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
 
     def __init__(self):
+            
+
         
         self.battery = 10
         
@@ -108,15 +71,14 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         self.action_space = spaces.Discrete(3) #rev: 3 actions
         self.observation_space = spaces.Box(low, high, dtype=np.float32)
 
-
+        # self.screen = None
+        # self.clock = None
+        # self.isopen = True
         self.state = None
 
         self.steps_beyond_done = None
 
     def step(self, action):
-        # actuation
-        global JointPosition
-
         err_msg = f"{action!r} ({type(action)}) invalid"
         assert self.action_space.contains(action), err_msg
         assert self.state is not None#, "Call reset before using step method."
@@ -124,67 +86,21 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         
         print("action taken:", action)
+        
+        if action == 1:
+                servo.write(100)
+                time.sleep(0.5)
+                servo.write(90)
+        elif action == 0: 
+                servo.write(80)
+                time.sleep(0.5)
+                servo.write(90)
+        else:
+                servo.write(90)
+                time.sleep(0.5)
+                servo.write(90)
 
         
-
-        if action == 0:
-            if JointPosition == 0:
-                JointPosition += 0
-                print("joint at pos 0")
-                
-            elif JointPosition == 1:
-                JointPosition -= 1
-                print("1-1 = joint at pos 0")
-                motorCWW()
-                
-            elif JointPosition == 2:
-                JointPosition -= 2
-                print("2-2 = joint at pos 0")
-                motorCWW()
-                motorCWW()
-                
-            else:
-                print("Action error: action out of bounds")
-
-        elif action == 1:
-            if JointPosition == 0:
-                JointPosition += 1
-                print("0+1 = joint at pos 1")
-                motorCW()
-                
-            elif JointPosition == 1:
-                JointPosition += 0
-                print("joint at pos 1")
-                
-            elif JointPosition == 2:
-                JointPosition -= 1
-                print("2-1 = joint at pos 1")
-                motorCWW()
-                
-            else:
-                print("Action error: action out of bounds")
-        elif action == 2:
-            if JointPosition == 0:
-                JointPosition += 2
-                print("0+2 = joint at pos 2")
-                motorCW()
-                motorCW()
-                
-            elif JointPosition == 1:
-                JointPosition += 1
-                print("1+1 = joint at pos 2")
-                motorCW()
-                
-            elif JointPosition == 2:
-                JointPosition += 0
-                print("joint at pos 2")
-                
-            else:
-                print("Action error: action out of bounds")
-
-
-
-        print('join position', JointPosition)
         time.sleep(3)
         
         # wrong place to call them!
@@ -241,6 +157,29 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         info = {}
 
 
+        # elif self.steps_beyond_done is None:
+        #
+        #     self.steps_beyond_done = 0
+        #     reward = 1.0
+        #     print('1 reward')
+        #
+        # # elif not done and Sensor2_messurment > 0.3:
+        # #     reward = -2.0
+        # #     print('-2 not reward')
+        #
+        #
+        # else:
+        #     if self.steps_beyond_done == 0:
+        #         logger.warn(
+        #             "You are calling 'step()' even though this "
+        #             "environment has already returned done = True. You "
+        #             "should always call 'reset()' once you receive 'done = "
+        #             "True' -- any further steps are undefined behavior."
+        #         )
+        #     self.steps_beyond_done += 1
+        #     reward = 0.0
+        #     print('0 reward')
+
             
 
         return np.array(self.state, dtype=np.float32), reward, done, {}
@@ -261,7 +200,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             return np.array(self.state, dtype=np.float32), {}
 
     def render(self, mode="human"):
-        pass
+    	pass
        
     def close(self):
-        pass
+    	pass

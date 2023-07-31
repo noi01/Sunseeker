@@ -65,13 +65,11 @@ def motorCWW():
 
 JointPosition = 0
 
-motorCWW()
-motorCWW()
 
 class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
 
-    #metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
 
     def __init__(self):
         
@@ -108,14 +106,16 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         self.action_space = spaces.Discrete(3) #rev: 3 actions
         self.observation_space = spaces.Box(low, high, dtype=np.float32)
 
-
+        # self.screen = None
+        # self.clock = None
+        # self.isopen = True
         self.state = None
 
         self.steps_beyond_done = None
 
     def step(self, action):
         # actuation
-        global JointPosition
+        #global JointPosition
 
         err_msg = f"{action!r} ({type(action)}) invalid"
         assert self.action_space.contains(action), err_msg
@@ -125,7 +125,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         print("action taken:", action)
 
-        
+        JointPosition = 0
 
         if action == 0:
             if JointPosition == 0:
@@ -134,12 +134,12 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
                 
             elif JointPosition == 1:
                 JointPosition -= 1
-                print("1-1 = joint at pos 0")
+                print("-1 = joint at pos 0")
                 motorCWW()
                 
             elif JointPosition == 2:
                 JointPosition -= 2
-                print("2-2 = joint at pos 0")
+                print("-2 = joint at pos 0")
                 motorCWW()
                 motorCWW()
                 
@@ -149,7 +149,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         elif action == 1:
             if JointPosition == 0:
                 JointPosition += 1
-                print("0+1 = joint at pos 1")
+                print("+1 = joint at pos 1")
                 motorCW()
                 
             elif JointPosition == 1:
@@ -158,7 +158,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
                 
             elif JointPosition == 2:
                 JointPosition -= 1
-                print("2-1 = joint at pos 1")
+                print("-1 = joint at pos 1")
                 motorCWW()
                 
             else:
@@ -166,13 +166,13 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         elif action == 2:
             if JointPosition == 0:
                 JointPosition += 2
-                print("0+2 = joint at pos 2")
+                print("+2 = joint at pos 2")
                 motorCW()
                 motorCW()
                 
             elif JointPosition == 1:
-                JointPosition += 1
-                print("1+1 = joint at pos 2")
+                JointPosition -= 1
+                print("+1 = joint at pos 2")
                 motorCW()
                 
             elif JointPosition == 2:
@@ -184,7 +184,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
 
 
-        print('join position', JointPosition)
+        
         time.sleep(3)
         
         # wrong place to call them!
@@ -261,7 +261,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             return np.array(self.state, dtype=np.float32), {}
 
     def render(self, mode="human"):
-        pass
+    	pass
        
     def close(self):
-        pass
+    	pass
