@@ -21,7 +21,7 @@ iterator = util.Iterator(board)
 iterator.start()
 
 Sensor1 = board.get_pin('a:0:i')
-Sensor2 = board.get_pin('a:2:i')
+Sensor2 = board.get_pin('a:1:i')
 
 time.sleep(2)
 
@@ -78,10 +78,10 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         self.battery = 10
         
         
-        self.solar_panel_max = 100
+        self.solar_panel_max = 1023
         self.solar_panel_min = 0
         
-        self.humidity_sensor_max = 100
+        self.humidity_sensor_max = 1023
         self.humidity_sensor_min = 0
 
         # Angle limit set to 2 * theta_threshold_radians so failing observation
@@ -185,7 +185,6 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
 
         print('join position', JointPosition)
-        time.sleep(3)
         
         # wrong place to call them!
         # Sensor1 = board.get_pin('a:0:i')
@@ -199,7 +198,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         print('Sensor2: Light state', Sensor2_messurment) 
         
    
-        time.sleep(2)
+        
         #what is part of self-state aka world the agent observes
         Sensor1_messurment, Sensor2_messurment = self.state 
 
@@ -216,7 +215,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         #time.sleep(10)
         
         self.state = (battery_state, humidity_state) 
-        print('Self state', self.state)
+        print('Self state - battery - humidity', self.state)
         
         reward_battery = Sensor2.read()
         print('Reward meassurment', reward_battery)
