@@ -1,4 +1,12 @@
-# -*- coding: utf-8 -*-
+
+
+# Version of libraries: Python 3.11.0 , numpy 2.0.2 , tensorflow 2.18.0 , keras 3.6.0,
+# Hardware interfacing: Adafruit-Blinka 8.61.2 , adafruit-circuitpython-ina219 3.4.2
+
+# gym 0.26.2 installed from  repo that fixes np.bool8 with : pip install git+https://github.com/sebastianbrzustowicz/gym.git@np.bool_
+# from https://github.com/openai/gym/pull/3258
+
+
 import random
 import gym
 import numpy as np
@@ -62,7 +70,8 @@ class DqnAgent:
 
 
 if __name__ == "__main__":
-    #Environment for Arduino/PyFrimata use
+    
+    #Environment 
     import gym_sunday5
     env = gym.make('sunday5-v1')
    
@@ -70,7 +79,10 @@ if __name__ == "__main__":
     state_size = env.observation_space.shape[0]
     action_size = env.action_space.n
     agent = DqnAgent(state_size, action_size)
-    # agent.load("./save/cartpole-dqn.h5")
+
+    ## This should be tested so it saves / loads
+    # agent.load("./save/sunday3-dqn.h5")
+
     done = False
     batch_size = 10
     count = 0
@@ -97,6 +109,9 @@ if __name__ == "__main__":
                 break
             if len(agent.memory) > batch_size:
                 agent.replay(batch_size)
+                
+            ## This should be tested so it saves / loads
             #if e % 10 == 0:
              #   agent.save("./save/sunday3-dqn.h5")
+             
     output_file.close()

@@ -1,8 +1,6 @@
 import math
 from typing import Optional, Union
 
-from pyfirmata import Arduino, util
-
 import numpy as np
 import random
 
@@ -12,84 +10,99 @@ from gym.error import DependencyNotInstalled
 
 import time
 
-#Arrduino online
-port = '/dev/cu.usbmodem143101'
-pin  = 9
-board = Arduino(port)
+## Circuitpython
 
-iterator = util.Iterator(board)
-iterator.start()
+import board
+import digitalio
 
-Sensor1 = board.get_pin('a:0:i')
-Sensor2 = board.get_pin('a:1:i')
+from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
 
-time.sleep(2)
+Second_Sensor = digitalio.DigitalInOut(board.D7)
 
-DC_motor_pin3 = board.get_pin('d:3:o')
-DC_motor_pin2 = board.get_pin('d:2:o')
+Second_Sensor.direction = digitalio.Direction.INPUT
+
+i2c_bus = board.I2C()  # uses board.SCL and board.SDA
+
+ina219 = INA219(i2c_bus)
+
+print("ina219 test")
+
+
+## display some of the advanced field (just to test)
+print("Config register:")
+print("  bus_voltage_range:    0x%1X" % ina219.bus_voltage_range)
+print("  gain:                 0x%1X" % ina219.gain)
+print("  bus_adc_resolution:   0x%1X" % ina219.bus_adc_resolution)
+print("  shunt_adc_resolution: 0x%1X" % ina219.shunt_adc_resolution)
+print("  mode:                 0x%1X" % ina219.mode)
+print("")
+
+Value_Second_Sensor = Second_Sensor.value
+
+print(Value_Second_Sensor)
+
+
+### Deleted everything from the motor instructions outside of print, because it's not important for testing / treat as placeholder
+
+#Motor 1
 
 def motorOFF():
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(1)
-        time.sleep(0.01)
+        print(" motor01 OFF")
         
 def motorCW():
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(1)
-        time.sleep(0.01)
-        
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(0)
-        
-        time.sleep(1)
-        
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(1)
-        
-        time.sleep(1)
+        print(" motor01 CW")
         
 def motorCWW():
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(1)
-        time.sleep(0.01)
+        print(" motor01 CWW")
+
+#Motor 2
+
+def motor2OFF():
+        print(" motor02 OFF")
         
-        DC_motor_pin3.write(0)
-        DC_motor_pin2.write(1)
+def motor2CW():
+        print(" motor02 CW")
         
-        time.sleep(1)
+def motor2CWW():
+        print(" motor02 CWW")
+
+#Motor 3
+
+def motor3OFF():
+        print(" motor03 OFF")
         
-        DC_motor_pin3.write(1)
-        DC_motor_pin2.write(1)
+def motor3CW():
+        print(" motor03 CW")
         
-        time.sleep(1)
+def motor3CWW():
+        print(" motor03 CCW")
 
 JointPosition = 0
 
-motorCWW()
-motorCWW()
+Joint2Position = 0
+
+Joint3Position = 0
+
 
 class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
 
-    #metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
-
     def __init__(self):
         
-        self.battery = 10
+        self.battery = 10 #uh.... forgot what this does
         
+        self.Sensor_2_max = 1023 #INA219
+        self.Sensor_2_min = 0
         
-        self.solar_panel_max = 1023
-        self.solar_panel_min = 0
-        
-        self.humidity_sensor_max = 1023
-        self.humidity_sensor_min = 0
+        self.Sensor_1_max = 1023 #Other sensor
+        self.Sensor_1_min = 0
 
         # Angle limit set to 2 * theta_threshold_radians so failing observation
         # is still within bounds.
         high = np.array(
             [
-                self.solar_panel_max,
-                self.humidity_sensor_max,
+                self.Sensor_2_max,
+                self.Sensor_1_max,
  
             ],
             dtype=np.float32,
@@ -97,15 +110,15 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         low = np.array(
             [
-                self.solar_panel_min,
-                self.humidity_sensor_min,
+                self.Sensor_2_min,
+                self.Sensor_1_min,
  
             ],
             dtype=np.float32,
         )
 
 
-        self.action_space = spaces.Discrete(3) #rev: 3 actions
+        self.action_space = spaces.Discrete(9) 
         self.observation_space = spaces.Box(low, high, dtype=np.float32)
 
 
@@ -114,20 +127,22 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         self.steps_beyond_done = None
 
     def step(self, action):
-        # actuation
+        # actuation, it needs it to work
         global JointPosition
+        global Joint2Position
+        global Joint3Position
 
         err_msg = f"{action!r} ({type(action)}) invalid"
         assert self.action_space.contains(action), err_msg
-        assert self.state is not None#, "Call reset before using step method."
-        #x, theta = self.state # x, x_dot, theta, theta_dot
-        
-        
-        print("action taken:", action)
+        assert self.state is not None #, "Call reset before using step method."
 
         
+        
+        print("Action taken:", action)
 
-        if action == 0:
+        
+### What actions do is not important, treat as placeholder
+        if action == 0: 
             if JointPosition == 0:
                 JointPosition += 0
                 print("joint at pos 0")
@@ -163,6 +178,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
                 
             else:
                 print("Action error: action out of bounds")
+
         elif action == 2:
             if JointPosition == 0:
                 JointPosition += 2
@@ -182,42 +198,156 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             else:
                 print("Action error: action out of bounds")
 
+        elif action == 3: #Motor2 pos 0
+            if Joint2Position == 0:
+                Joint2Position += 0
+                print("joint2 at pos 0")
 
+                
+            elif Joint2Position == 1:
+                Joint2Position -= 1
+                print("0-1 = joint2 at pos 0")
+                motor2CWW()
+                
+            elif Joint2Position == 2:
+                Joint2Position -= 2
+                print("2-2 = joint2 at pos 0")
+                motor2CWW()
+                motor2CWW()
+                
+            else:
+                print("Action error: action out of bounds")
 
-        print('join position', JointPosition)
+        elif action == 4: #Motor2 pos 1
+            if Joint2Position == 0:
+                Joint2Position += 1
+                print("0+1 = joint2 at pos 1")
+                motor2CW()
+                
+            elif Joint2Position == 1:
+                Joint2Position += 0
+                print("joint2 at pos 1")
+                
+            elif Joint2Position == 2:
+                Joint2Position -= 1
+                print("joint2 at pos 2")
+                motor2CWW()
+
+            else:
+                print("Action error: action out of bounds")
+
+        elif action == 5: #Motor2 pos 2
+            if Joint2Position == 0:
+                Joint2Position += 2
+                print("0+2 = joint2 at pos 2")
+                motor2CW()
+                motor2CW()
+                
+            elif Joint2Position == 1:
+                Joint2Position += 1
+                print("1+1 = joint2 at pos 2")
+                motor2CW()
+                
+            elif Joint2Position == 2:
+                Joint2Position += 0
+                print("joint2 at pos 2")
+
+            else:
+                print("Action error: action out of bounds")
+
+        elif action == 6: #Motor3 pos 0
+            if Joint3Position == 0:
+                Joint3Position += 0
+                print("joint3 at pos 0")
+
+                
+            elif Joint3Position == 1:
+                Joint3Position -= 1
+                print("0-1 = joint3 at pos 0")
+                motor2CWW()
+                
+            elif Joint3Position == 2:
+                Joint3Position -= 2
+                print("2-2 = joint3 at pos 0")
+                motor2CWW()
+                motor2CWW()
+                
+            else:
+                print("Action error: action out of bounds")
+
+        elif action == 7: #Motor3 pos 1
+            if Joint3Position == 0:
+                Joint3Position += 1
+                print("0+1 = joint3 at pos 1")
+                motor2CW()
+                
+            elif Joint3Position == 1:
+                Joint3Position += 0
+                print("joint3 at pos 1")
+                
+            elif Joint3Position == 2:
+                Joint3Position -= 1
+                print("joint3 at pos 2")
+                motor2CWW()
+
+            else:
+                print("Action error: action out of bounds")
+
+        elif action == 8: #Motor3 pos 2
+            if Joint3Position == 0:
+                Joint3Position += 2
+                print("0+2 = joint3 at pos 2")
+                motor2CW()
+                motor2CW()
+                
+            elif Joint3Position == 1:
+                Joint3Position += 1
+                print("1+1 = joint3 at pos 2")
+                motor2CW()
+                
+            elif Joint3Position == 2:
+                Joint3Position += 0
+                print("joint3 at pos 2")
+                
+            else:
+                print("Action error: action out of bounds")
+
+        print('Joint 1 position:', JointPosition,'Joint 2 position:', Joint2Position, 'Joint 3 position:', Joint3Position)
         
-        # wrong place to call them!
-        # Sensor1 = board.get_pin('a:0:i')
-        # Sensor2 = board.get_pin('a:2:i')
-        
-        Sensor1_messurment = Sensor1.read()#humidity
-        Sensor2_messurment = Sensor2.read()#light
         
         
-        print('Sensor1: Humidity state', Sensor1_messurment) 
-        print('Sensor2: Light state', Sensor2_messurment) 
         
-   
+        Sensor1_messurment = Value_Second_Sensor #Second_Sensor
+        Sensor2_messurment = ina219.current #Solar_panel
         
+        
+        print('Sensor1: Other Sensor', Sensor1_messurment) 
+        print('Sensor2: INA219 current', Sensor2_messurment) 
+        
+
         #what is part of self-state aka world the agent observes
         Sensor1_messurment, Sensor2_messurment = self.state 
 
         
         #the sensor Agent should learn to not care about
-        humidity_state = Sensor1.read()
-        #print('Humidity state', humidity_state)
+        Other_sensor_state = Sensor1_messurment
         
 
-        # the minus increment should be lower than the reward threshold
-        battery_state =  Sensor2.read() -0.7  
-        print('Battery state', battery_state)
+        # there will be diffrent math later for how much energy agent gathered, this is just a placeholder 
+        INA219_state =  Sensor2_messurment -0.7  
+        print('Battery state', INA219_state)
         
-        #time.sleep(10)
         
-        self.state = (battery_state, humidity_state) 
-        print('Self state - battery - humidity', self.state)
         
-        reward_battery = Sensor2.read()
+        #Env observation
+        self.state = (INA219_state, Other_sensor_state) 
+        print('Self state - INA219 current - Other Sensor', self.state)
+        
+        
+        
+        ## Reward
+        # there will be diffrent math later for reward for now just so there is some sensor value, this is just a placeholder 
+        reward_battery = Sensor2_messurment
         print('Reward meassurment', reward_battery)
         
         if reward_battery > 0.75: 
@@ -230,19 +360,17 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             time.sleep(1)
 
         #Are we done yet?
-        if battery_state <= 0: 
+        if INA219_state <= 0: 
                    done = True
         else:
                    done = False
                    
         time.sleep(2)
         print('---')
-        info = {}
-
-
-            
+        info = {}       
 
         return np.array(self.state, dtype=np.float32), reward, done, {}
+
 
     def reset(
         self,
