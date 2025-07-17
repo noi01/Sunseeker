@@ -13,19 +13,96 @@ import time
 ## Circuitpython
 
 import board
-import digitalio
 
-from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
+ina219 = None
+Second_Sensor = None
+#if board is not connected use fake INA219 sensor
 
-Second_Sensor = digitalio.DigitalInOut(board.D7)
+if board.board_id =="GENERIC_LINUX_PC":
+    print("USING FAKE SENSORS")
+    class INA219:
+        def __init__(self):
+            print("Fake INA219")
+            self.bus_voltage_range = 0x00
+            self.gain = 0x00
+            self.bus_adc_resolution = 0x00
+            self.shunt_adc_resolution = 0x00
+            self.mode = 0x05
+            
+            # Solar panel simulation parameters
+            self._max_voltage = 18.0
+            self._max_current = 3000.0  # in mA
+            self._output_level = 0.5  # 0.0 to 1.0
+            
+            # INA219 calibration values
+            self._cal_value = 4096
+            self._power_lsb = 2.0  # mW per bit
+            self._raw_calibration = self._cal_value
+        
+        def set_output_level(self, level):
+            """Set solar panel output level (0.0 to 1.0)"""
+            self._output_level = max(0.0, min(1.0, level))
+        
+        @property
+        def current(self) -> float:
+            """The current through the shunt resistor in milliamps."""
+            base_current = self._max_current * self._output_level
+            noise = random.uniform(-50, 50)  # ±50mA noise
+            return max(0.0, base_current + noise)
+        
+        @property
+        def voltage(self) -> float:
+            """The bus voltage in volts."""
+            base_voltage = self._max_voltage * (0.7 + 0.3 * self._output_level)
+            noise = random.uniform(-0.1, 0.1)  # ±0.1V noise
+            return max(0.0, base_voltage + noise)
+        
+        @property
+        def power(self) -> float:
+            """The power through the load in Watt."""
+            # Sometimes a sharp load will reset the INA219, which will
+            # reset the cal register, meaning CURRENT and POWER will
+            # not be available ... always setting a cal
+            # value even if it's an unfortunate extra step
+            self._raw_calibration = self._cal_value
+            # Now we can safely read the CURRENT register!
+            return self.raw_power * self._power_lsb / 1000.0  # Convert mW to W
+        
+        @property
+        def raw_power(self) -> int:
+            """Raw power register value."""
+            power_mw = (self.voltage * self.current)  # V * mA = mW
+            return int(power_mw / self._power_lsb)
+        
+        @property
+        def shunt_voltage(self) -> float:
+            """Shunt voltage in millivolts."""
+            return self.current * 0.1  # Assuming 0.1Ω shunt resistor
 
-Second_Sensor.direction = digitalio.Direction.INPUT
 
-i2c_bus = board.I2C()  # uses board.SCL and board.SDA
+    ina219 = INA219()
 
-ina219 = INA219(i2c_bus)
+    class DigitalInOut:
+        def __init__(self):
+             pass
+        @property
+        def value(self):
+            """The Fake Digital Pin Value"""
+            return random.choice([0, 1])
+        
+    Second_Sensor = DigitalInOut()
+else:
+    import digitalio
+    from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
 
-print("ina219 test")
+    Second_Sensor = digitalio.DigitalInOut(board.D7)
+
+    Second_Sensor.direction = digitalio.Direction.INPUT
+
+    i2c_bus = board.I2C()  # uses board.SCL and board.SDA
+
+    ina219 = INA219(i2c_bus)
+
 
 
 ## display some of the advanced field (just to test)
