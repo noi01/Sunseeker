@@ -6,7 +6,8 @@
 # gym 0.26.2 installed from  repo that fixes np.bool8 with : pip install git+https://github.com/sebastianbrzustowicz/gym.git@np.bool_
 # from https://github.com/openai/gym/pull/3258
 
-
+import os
+import datetime
 import random
 import gym
 import numpy as np
@@ -16,6 +17,9 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 
 EPISODES = 100
+SAVE_INTERVAL = 10
+experiment_prefix = "sunseeker"
+folder_to_save_to = "models"
 
 
 class DqnAgent:
@@ -66,11 +70,28 @@ class DqnAgent:
         self.model.load_weights(name)
 
     def save(self, name):
-        self.model.save_weights(name)
-
+        self.model.save("{}.keras".format(name))
+     
 
 if __name__ == "__main__":
+    print("\n\nSunseeker - Natalia Balska\n\n")
+
+    #generate experiment and model name based on script launch time
+    launch_time = datetime.datetime.now().strftime('%y%m%d_%H%M')
+    experiment_name = "{}_{}".format(experiment_prefix,launch_time)
+    agent_name = "agent_{}".format(launch_time)
+
+    print("Experiment: {}".format(experiment_name))
+
+    #generate paths for model saving
+    path_to_save_folder = os.path.join(os.getcwd(),folder_to_save_to)
+    path_to_experiment_folder = os.path.join(path_to_save_folder,experiment_name)
+    path_to_model = os.path.join(path_to_experiment_folder, agent_name)
+
+    os.makedirs(path_to_experiment_folder, exist_ok= True)
     
+    print("Experiment folder setup")
+
     #Environment 
     import gym_sunday5
     env = gym.make('sunday5-v1')
@@ -88,6 +109,8 @@ if __name__ == "__main__":
     count = 0
 
     for e in range(EPISODES):
+        episode_count = e+1 #add 1 to count episode starting at episode 1
+ 
         state = env.reset()
         state = np.reshape(state, [1, state_size])
         for time in range(500):
@@ -101,17 +124,22 @@ if __name__ == "__main__":
             state = next_state
 
             if done:
-                print("episode: {}/{}, score: {}, e: {:.2}"
-                      .format(e, EPISODES, time, agent.epsilon))
+                print("episode: {}/{}, score: {}, epsilon: {:.2}"
+                      .format(episode_count, EPISODES, time, agent.epsilon))
                 output = str(e) + ", " + str(time) + ", " + str(agent.epsilon) + "\n"
                 output_file.write(output)
                 output_file.flush()
+                     
+                # save model if interval is reached and this is not the last episode
+                if episode_count % SAVE_INTERVAL == 0 and episode_count != EPISODES:
+                    print("Saving model checkpoint at EPOCH {}".format(episode_count))
+                    checkpoint_name = "{}_epoch{:02d}".format(path_to_model,episode_count)
+                    agent.save(checkpoint_name)
                 break
             if len(agent.memory) > batch_size:
                 agent.replay(batch_size)
                 
-            ## This should be tested so it saves / loads
-            #if e % 10 == 0:
-             #   agent.save("./save/sunday3-dqn.h5")
-             
+    print("All episodes completed.")
+    print("Saving final model")
+    agent.save("{}_final".format(path_to_model))           
     output_file.close()
