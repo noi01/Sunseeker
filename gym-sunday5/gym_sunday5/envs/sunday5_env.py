@@ -154,11 +154,6 @@ def motor3CW():
 def motor3CWW():
         print(" motor03 CCW")
 
-JointPosition = 0
-
-Joint2Position = 0
-
-Joint3Position = 0
 
 
 class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
@@ -173,6 +168,13 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         self.Sensor_1_max = 1023 #Other sensor
         self.Sensor_1_min = 0
+
+        self.JointPosition = 0
+
+        self.Joint2Position = 0
+
+        self.Joint3Position = 0
+
 
         # Angle limit set to 2 * theta_threshold_radians so failing observation
         # is still within bounds.
@@ -205,9 +207,6 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
     def step(self, action):
         # actuation, it needs it to work
-        global JointPosition
-        global Joint2Position
-        global Joint3Position
 
         err_msg = f"{action!r} ({type(action)}) invalid"
         assert self.action_space.contains(action), err_msg
@@ -220,17 +219,17 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
 ### What actions do is not important, treat as placeholder
         if action == 0: 
-            if JointPosition == 0:
-                JointPosition += 0
+            if self.JointPosition == 0:
+                self.JointPosition += 0
                 print("joint at pos 0")
                 
-            elif JointPosition == 1:
-                JointPosition -= 1
+            elif self.JointPosition == 1:
+                self.JointPosition -= 1
                 print("1-1 = joint at pos 0")
                 motorCWW()
                 
-            elif JointPosition == 2:
-                JointPosition -= 2
+            elif self.JointPosition == 2:
+                self.JointPosition -= 2
                 print("2-2 = joint at pos 0")
                 motorCWW()
                 motorCWW()
@@ -239,17 +238,17 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
                 print("Action error: action out of bounds")
 
         elif action == 1:
-            if JointPosition == 0:
-                JointPosition += 1
+            if self.JointPosition == 0:
+                self.JointPosition += 1
                 print("0+1 = joint at pos 1")
                 motorCW()
                 
-            elif JointPosition == 1:
-                JointPosition += 0
+            elif self.JointPosition == 1:
+                self.JointPosition += 0
                 print("joint at pos 1")
                 
-            elif JointPosition == 2:
-                JointPosition -= 1
+            elif self.JointPosition == 2:
+                self.JointPosition -= 1
                 print("2-1 = joint at pos 1")
                 motorCWW()
                 
@@ -257,37 +256,37 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
                 print("Action error: action out of bounds")
 
         elif action == 2:
-            if JointPosition == 0:
-                JointPosition += 2
+            if self.JointPosition == 0:
+                self.JointPosition += 2
                 print("0+2 = joint at pos 2")
                 motorCW()
                 motorCW()
                 
-            elif JointPosition == 1:
-                JointPosition += 1
+            elif self.JointPosition == 1:
+                self.JointPosition += 1
                 print("1+1 = joint at pos 2")
                 motorCW()
                 
-            elif JointPosition == 2:
-                JointPosition += 0
+            elif self.JointPosition == 2:
+                self.JointPosition += 0
                 print("joint at pos 2")
                 
             else:
                 print("Action error: action out of bounds")
 
         elif action == 3: #Motor2 pos 0
-            if Joint2Position == 0:
-                Joint2Position += 0
+            if self.Joint2Position == 0:
+                self.Joint2Position += 0
                 print("joint2 at pos 0")
 
                 
-            elif Joint2Position == 1:
-                Joint2Position -= 1
+            elif self.Joint2Position == 1:
+                self.Joint2Position -= 1
                 print("0-1 = joint2 at pos 0")
                 motor2CWW()
                 
-            elif Joint2Position == 2:
-                Joint2Position -= 2
+            elif self.Joint2Position == 2:
+                self.Joint2Position -= 2
                 print("2-2 = joint2 at pos 0")
                 motor2CWW()
                 motor2CWW()
@@ -296,17 +295,17 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
                 print("Action error: action out of bounds")
 
         elif action == 4: #Motor2 pos 1
-            if Joint2Position == 0:
-                Joint2Position += 1
+            if self.Joint2Position == 0:
+                self.Joint2Position += 1
                 print("0+1 = joint2 at pos 1")
                 motor2CW()
                 
-            elif Joint2Position == 1:
-                Joint2Position += 0
+            elif self.Joint2Position == 1:
+                self.Joint2Position += 0
                 print("joint2 at pos 1")
                 
-            elif Joint2Position == 2:
-                Joint2Position -= 1
+            elif self.Joint2Position == 2:
+                self.Joint2Position -= 1
                 print("joint2 at pos 2")
                 motor2CWW()
 
@@ -314,37 +313,37 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
                 print("Action error: action out of bounds")
 
         elif action == 5: #Motor2 pos 2
-            if Joint2Position == 0:
-                Joint2Position += 2
+            if self.Joint2Position == 0:
+                self.Joint2Position += 2
                 print("0+2 = joint2 at pos 2")
                 motor2CW()
                 motor2CW()
                 
-            elif Joint2Position == 1:
-                Joint2Position += 1
+            elif self.Joint2Position == 1:
+                self.Joint2Position += 1
                 print("1+1 = joint2 at pos 2")
                 motor2CW()
                 
-            elif Joint2Position == 2:
-                Joint2Position += 0
+            elif self.Joint2Position == 2:
+                self.Joint2Position += 0
                 print("joint2 at pos 2")
 
             else:
                 print("Action error: action out of bounds")
 
         elif action == 6: #Motor3 pos 0
-            if Joint3Position == 0:
-                Joint3Position += 0
+            if self.Joint3Position == 0:
+                self.Joint3Position += 0
                 print("joint3 at pos 0")
 
                 
-            elif Joint3Position == 1:
-                Joint3Position -= 1
+            elif self.Joint3Position == 1:
+                self.Joint3Position -= 1
                 print("0-1 = joint3 at pos 0")
                 motor2CWW()
                 
-            elif Joint3Position == 2:
-                Joint3Position -= 2
+            elif self.Joint3Position == 2:
+                self.Joint3Position -= 2
                 print("2-2 = joint3 at pos 0")
                 motor2CWW()
                 motor2CWW()
@@ -353,17 +352,17 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
                 print("Action error: action out of bounds")
 
         elif action == 7: #Motor3 pos 1
-            if Joint3Position == 0:
-                Joint3Position += 1
+            if self.Joint3Position == 0:
+                self.Joint3Position += 1
                 print("0+1 = joint3 at pos 1")
                 motor2CW()
                 
-            elif Joint3Position == 1:
-                Joint3Position += 0
+            elif self.Joint3Position == 1:
+                self.Joint3Position += 0
                 print("joint3 at pos 1")
                 
-            elif Joint3Position == 2:
-                Joint3Position -= 1
+            elif self.Joint3Position == 2:
+                self.Joint3Position -= 1
                 print("joint3 at pos 2")
                 motor2CWW()
 
@@ -371,25 +370,25 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
                 print("Action error: action out of bounds")
 
         elif action == 8: #Motor3 pos 2
-            if Joint3Position == 0:
-                Joint3Position += 2
+            if self.Joint3Position == 0:
+                self.Joint3Position += 2
                 print("0+2 = joint3 at pos 2")
                 motor2CW()
                 motor2CW()
                 
-            elif Joint3Position == 1:
-                Joint3Position += 1
+            elif self.Joint3Position == 1:
+                self.Joint3Position += 1
                 print("1+1 = joint3 at pos 2")
                 motor2CW()
                 
-            elif Joint3Position == 2:
-                Joint3Position += 0
+            elif self.Joint3Position == 2:
+                self.Joint3Position += 0
                 print("joint3 at pos 2")
                 
             else:
                 print("Action error: action out of bounds")
 
-        print('Joint 1 position:', JointPosition,'Joint 2 position:', Joint2Position, 'Joint 3 position:', Joint3Position)
+        print('Joint 1 position:', self.JointPosition,'Joint 2 position:', self.Joint2Position, 'Joint 3 position:', self.Joint3Position)
         
         
         
