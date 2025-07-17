@@ -3,3 +3,4 @@ adafruit_circuitpython_ina219==3.4.29
 gym @ git+https://github.com/sebastianbrzustowicz/gym.git@np.bool_
 numpy==2.3.1
 tensorflow==2.18.0
+-e gym-sunday5
