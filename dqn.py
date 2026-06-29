@@ -21,6 +21,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import Callback
 import gym_sunday5
 
+
 #############################################################################
 #                                 Constant                                  #
 #############################################################################
@@ -30,6 +31,7 @@ BATCH_SIZE = 10
 SAVE_INTERVAL = 10
 EXPERIMENT_PREFIX = "sunseeker"
 FOLDER_TO_SAVE_TO = "models"
+WS_URL = "ws://192.168.0.125/ws"
 
 
 #############################################################################
@@ -165,6 +167,7 @@ def build_paths():
     path_to_output = os.path.join(path_to_experiment_folder, "_ouptut.csv")
     return path_to_experiment_folder, path_to_model, path_to_output
 
+
 #############################################################################
 #                              Script Launch                                #
 #############################################################################
@@ -176,6 +179,8 @@ if __name__ == "__main__":
     parser.add_argument('-b', "--batch_size", type=int, default=BATCH_SIZE, help="Agent's batch size")
     parser.add_argument('-s', "--save_interval", type=int, default=SAVE_INTERVAL, help="Number of completed episode after which the agent will be saved")
     parser.add_argument('-l', "--load",type=str, help="Path to the .keras file of the model to load" )
+    parser.add_argument('--ws_url', type=str, default=WS_URL, help="WebSocket server URL, ex: ws://localhost:8765")
+    parser.add_argument('--ws_timeout', type=float, default=5.0, help="Timeout in seconds used while establishing websocket connection")
 
     args = parser.parse_args()
     if args.check_env == True:
@@ -211,66 +216,69 @@ if __name__ == "__main__":
   
   
 
-    print("----------------------------- Training loop start ------------------------------------")
-    #########################################################################
-    #                             Training loop                             #
-    #########################################################################
-    for e in range(args.episode):
-        done = False #episode done
-        episode_count = e+1 #add 1 to count episode starting at episode 1
- 
-        state, info = env.reset()
-        state = np.reshape(state, [1, state_size])
-        
-        #timestep loop 
-        #it looks like some of this code should be written inside the env code instead of the training loop
-        print("==============================================================")
-        while not done:
-            
-            print("\nEPISODE: {} STEP: {}".format(episode_count,info["step_count"]))
-            action = agent.act(state)
-            observation, reward, done, truncated, info = env.step(action)
-            print(info)
-            if truncated:
-                print("Episode truncated")
-                #implement the truncation logic here
-                break
-            
-            #here implement the reward logic through episodes.
-            reward = reward if not done else -10 
 
-            observation = np.reshape(observation, [1, state_size])
-            agent.remember(state, action, reward, observation, done)
+    # while True:
+    #     time.sleep(0.01)
+    try:
+        print("----------------------------- Training loop start ------------------------------------")
+        #########################################################################
+        #                             Training loop                             #
+        #########################################################################
+        for e in range(args.episode):
+            done = False #episode done
+            episode_count = e+1 #add 1 to count episode starting at episode 1
 
-            state = observation
-            
-            if done: 
-                #shouldnt score be  formated with reward instead of time?
-                print("Episode done")
-                print("Episode: {}/{}, score: {}, epsilon: {:.2}".format(episode_count, args.episode, info["step_count"], agent.epsilon))
-                # agent.printWeights()
-                #format ouptut and write to csv file
-                output = str(e) + ", " + str(info["step_count"]) + ", " + str(agent.epsilon) + "\n"
-                output_file.write(output)
-                output_file.flush()
-                     
-                # save model if interval is reached and this is not the last episode
-                if episode_count % args.save_interval == 0 and episode_count != args.episode:
-                    print("Saving model checkpoint at EPOCH {}".format(episode_count))
-                    checkpoint_name = "{}_epoch{:02d}".format(path_to_model,episode_count)
-                    agent.save(checkpoint_name)
-                continue
+            state, info = env.reset()
+            state = np.reshape(state, [1, state_size])
 
-                # breaking here makes the code get out of the loop and never reaches the code under this statement. 
-                # agent is always done in a single step so it is never possible to either replay or save
+            #timestep loop
+            #it looks like some of this code should be written inside the env code instead of the training loop
+            print("==============================================================")
+            while not done:
 
-            if len(agent.memory) > args.batch_size:
-                agent.replay(args.batch_size)
+                print("\nEPISODE: {} STEP: {}".format(episode_count,info["step_count"]))
+                action = agent.act(state)
+                observation, reward, done, truncated, info = env.step(action)
+                print(info)
+                if truncated:
+                    print("Episode truncated")
+                    #implement the truncation logic here
+                    break
 
+                #here implement the reward logic through episodes.
+                reward = reward if not done else -10
 
+                observation = np.reshape(observation, [1, state_size])
+                agent.remember(state, action, reward, observation, done)
 
-    print("All episodes completed.")
-    print("Saving final model")
-    agent.save("{}_final".format(path_to_model)) 
-    agent.printWeights()        
-    output_file.close()
+                state = observation
+
+                if done:
+                    #shouldnt score be  formated with reward instead of time?
+                    print("Episode done")
+                    print("Episode: {}/{}, score: {}, epsilon: {:.2}".format(episode_count, args.episode, info["step_count"], agent.epsilon))
+                    # agent.printWeights()
+                    #format ouptut and write to csv file
+                    output = str(e) + ", " + str(info["step_count"]) + ", " + str(agent.epsilon) + "\n"
+                    output_file.write(output)
+                    output_file.flush()
+
+                    # save model if interval is reached and this is not the last episode
+                    if episode_count % args.save_interval == 0 and episode_count != args.episode:
+                        print("Saving model checkpoint at EPOCH {}".format(episode_count))
+                        checkpoint_name = "{}_epoch{:02d}".format(path_to_model,episode_count)
+                        agent.save(checkpoint_name)
+                    continue
+
+                    # breaking here makes the code get out of the loop and never reaches the code under this statement.
+                    # agent is always done in a single step so it is never possible to either replay or save
+
+                if len(agent.memory) > args.batch_size:
+                    agent.replay(args.batch_size)
+
+        print("All episodes completed.")
+        print("Saving final model")
+        agent.save("{}_final".format(path_to_model))
+        agent.printWeights()
+    finally:
+        output_file.close()

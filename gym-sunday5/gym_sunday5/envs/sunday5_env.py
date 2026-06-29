@@ -1,3 +1,5 @@
+import json
+import threading
 from typing import Optional, Union
 import numpy as np
 import gym
@@ -5,6 +7,10 @@ from gym import logger, spaces
 from gym.error import DependencyNotInstalled
 import time
 import board
+
+from misbkit import MisBKit
+
+DEFAULT_WS_URL = "ws://192.168.0.125/ws"
 
 ina219 = None
 Second_Sensor = None
@@ -130,10 +136,77 @@ def motor3CWW():
     print(" motor03 CCW")
 
 
+
+
+
+# `### Description
+
+# This environment is for real time learning of hardware based agent. 
+
+# For this example implementation the objective (goal) of the agent is to gather solar energy by turning solar panel towards the sun/light an increasing the charge of it's battery. At agents disposal are inputs from two sensors, the solar panel acting as a light sensor(Sensor 1), and second sensor that does not play part in energy gathering(Sensor 2).
+# There is also third sensor (Sensor 3) - pertaining to charge of battery - that does not play part in the observation space, but only in reward calculation.
+
+
+# ### Observation Space
+
+# The observation is a `ndarray` with shape `(2,)` with the values
+
+
+# | Num | Observation           | Min                 | Max               |
+# |-----|-----------------------|---------------------|-------------------|
+# | 0   | Sensor 1: Solar Panel | to be filed         | to be filed       |
+# | 1   | Sensor 2              | to be filed         | to be filed       |
+
+
+# ### Action Space
+
+# The action is a discreet space of 9 corresponding to 3 predetermined joint position for each of of 3 legs.
+
+
+# ### Rewards
+
+
+# The reward is calculated by comparing the current battery charge (Sensor 3) with battery charge at previous time step. The reward is (+1) for battery charge increasing, and negative reward (-1) for battery charge decreasing. The reward is calculated at every step.
+
+
+# ### Starting State
+
+# To be filled in
+
+
+# ### Episode End
+
+# The episode ends if any one of the following occurs:
+
+# Termination: Battery charge depletes to 0
+
+# Truncation: To be filled in
+
+
+# ### Learning loop structure (Step description)
+
+# 1. The agent receives observation from Sensor 1 and Sensor 2
+
+# 2. The agent choses an action from the discreete action space of 9
+
+# 3. The rewards is calculated by comparing Sensor 3 at current time step to Sensor 3 at previous time step. If battery reaches 0 - the learning ends.
+
+
 class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
     def __init__(self):
         super().__init__()
+
+        self.mbk = MisBKit()
+        self.mbk._handle_sensor_data = self._parse_received_data
+        self.mbk.connect()
+        self._sensor_poll_stop = threading.Event()
+        self._sensor_poll_thread = threading.Thread(
+            target=self._poll_sensor_data,
+            daemon=True,
+        )
+        self._sensor_poll_thread.start()
+        
         self.JointPosition = 0
         self.Joint2Position = 0
         self.Joint3Position = 0
@@ -141,10 +214,10 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         #delaring sensors as part of the environment
         if board.board_id == "GENERIC_LINUX_PC":
             self.ina219 = INA219(self.np_random)
-            self.Second_Sensor = DigitalInOut(self.np_random)
+            self.dummy_sensor = DigitalInOut(self.np_random)
         else:
-            self.Second_Sensor = digitalio.DigitalInOut(board.D7)
-            self.Second_Sensor.direction = digitalio.Direction.INPUT
+            self.dummy_sensor = digitalio.DigitalInOut(board.D7)
+            self.dummy_sensor.direction = digitalio.Direction.INPUT
             self.ina219 = INA219(board.I2C())
 
 
@@ -155,9 +228,36 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         self.Sensor_1_max = 1023  # Other sensor
         self.Sensor_1_min = 0
 
-        self.sensors_data = np.array([0,self.Second_Sensor.value],dtype=np.float32)
+        self.sensors_data = np.array([0,0],dtype=np.float32)
         
+        self.battery_charge= 0
+        self.last_battery_charge = 0
 
+        self.last_ina219 = {
+            "current" : 0,
+            "voltage" : 0,
+            "shunt_voltage" : 0,
+            "power" : 0
+        
+        }
+        self.current_ina219 = {
+            "current" : 0,
+            "voltage" : 0,
+            "shunt_voltage" : 0,
+            "power" : 0
+        }
+
+        self.last_max17048 = {
+            "cell_voltage" : 0,
+            "percent" : 0,
+            "rate":0
+        }
+
+        self.current_max17048 = {
+            "cell_voltage" : 0,
+            "percent" : 0,
+            "rate":0
+        }
         # define what actions are available to the agent
         self.action_space = spaces.Discrete(9)
 
@@ -183,7 +283,38 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
         self.step_count = 0
 
-        # self.steps_beyond_done = None
+        
+            
+
+    
+    
+    def _parse_received_data(self, val):
+        print("popa")
+        i2c_port = val["ports"][3]
+        ina = None
+        max17048 = None
+        for u in i2c_port["units"]:
+            if u["name"] == "sensor_ina219":
+                ina = u
+            elif u["name"] == "sensor_max17048":
+                max17048 = u
+
+        self.last_ina219 = self.current_ina219
+        self.last_max17048 = self.current_max17048
+
+        self.current_ina219["current"] = ina["val"][0]
+        self.current_ina219["voltage"] = ina["val"][1]
+        self.current_ina219["shunt_voltage"] = ina["val"][2]
+        self.current_ina219["power"] = ina["val"][3]
+        self.current_max17048["cell_voltage"] = max17048["val"][0]
+        self.current_max17048["percent"] = max17048["val"][1]
+        self.current_max17048["rate"] = max17048["val"][2]
+
+
+   
+    def _poll_sensor_data(self):
+        while not self._sensor_poll_stop.wait(2.0):
+            self.mbk.request_sensor_data()
 
     def _get_obs(self):
         """
@@ -199,12 +330,14 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         # it seemed like the second sensor was never updated in the original code so i'm only
         # updating the current sensor. If other sensors are to be sampled add it here
         
-        self.sensors_data[0] = np.float32(self.ina219.current)  # Solar_panel
-
+        self.sensors_data[0] = np.float32(self.current_ina219["current"])  # Solar_panel
+        self.sensors_data[1] = np.float32(self.current_max17048["cell_voltage"])
         #commented for now, but it could be usefull to clip data if sensors go out of observation space.
         # self.sensors_data = np.clip(self.sensors_data, self.observation_space.low, self.observation_space.high)
 
-        print("Sensors data", self.sensors_data)
+        print("Observation")
+        print(self.last_ina219)
+        print(self.last_max17048)
         return np.array(self.sensors_data, dtype=np.float32)
 
     def _get_info(self):  
@@ -417,12 +550,22 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         if board.board_id == "GENERIC_LINUX_PC":
             self.ina219 = INA219(self.np_random)
-            self.Second_Sensor = DigitalInOut(self.np_random)
+            self.dummy_sensor = DigitalInOut(self.np_random)
 
         self.step_count = 0
+      
         obs = self._get_obs()
         info = self._get_info()
         return obs, info
+    
+    def calculate_reward(self):
+        reward = 0
+        if self.current_max17048["cell_voltage"] > self.last_max17048["cell_voltage"]:
+            reward = 1
+        elif self.current_max17048["cell_voltage"] < self.last_max17048["cell_voltage"]:
+            reward = -1
+
+        return reward
         
     def step(self, action):  
         """
@@ -454,37 +597,29 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         #update environment based on taken action. 
         #program environment logic here
         self._move_robot(action)
-        
-        # there will be diffrent math later for how much energy agent gathered, this is just a placeholder
-        INA219_state = self.sensors_data[0] - 250
+        observation = self._get_obs()
 
-       
-        ## Reward calculation
-        # there will be diffrent math later for reward for now just so there is some sensor value, this is just a placeholder
-        reward_battery = self.sensors_data[0]
+        #update current battery reading 
 
-        if reward_battery > 250:
-            reward = 1
-            print("1 reward")
-            time.sleep(1)
-        else:
-            reward = -1
-            print("0 reward")
-            time.sleep(1)
-
-        
-        #Evalutate if environment was solved by agent. 
-        # program the solving conditions here
-        if INA219_state <= 250:
+        if self.current_max17048["cell_voltage"] <=0:
             terminated = True
         else:
             terminated = False
 
-
+        reward =  self.calculate_reward()
+        
         #end of step
         time.sleep(2)
-        print("Action: {}, Battery: {}, Reward: {}".format(action,INA219_state, reward))
-        observation = self._get_obs()
+        print("Action: {}, Battery: {}, Reward: {}".format(action,self.battery_charge, reward))
+        
         info = self._get_info()
 
+        #self.last_battery_charge = self.battery_charge
         return observation, reward, terminated, truncated, info
+
+    def close(self):
+        self._sensor_poll_stop.set()
+        if hasattr(self, "_sensor_poll_thread") and self._sensor_poll_thread.is_alive():
+            self._sensor_poll_thread.join(timeout=2.0)
+        if hasattr(self, "mbk"):
+            self.mbk.close()
