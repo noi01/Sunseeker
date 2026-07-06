@@ -229,9 +229,6 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         self.Sensor_1_min = 0
 
         self.sensors_data = np.array([0,0],dtype=np.float32)
-        
-        self.battery_charge= 0
-        self.last_battery_charge = 0
 
         self.last_ina219 = {
             "current" : 0,
@@ -254,8 +251,8 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         }
 
         self.current_max17048 = {
-            "cell_voltage" : 0,
-            "percent" : 0,
+            "cell_voltage" : 3.7,
+            "percent" : 50,
             "rate":0
         }
         # define what actions are available to the agent
@@ -332,8 +329,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         self.sensors_data[0] = np.float32(self.current_ina219["current"])  # Solar_panel
         self.sensors_data[1] = np.float32(self.current_max17048["cell_voltage"])
-        #commented for now, but it could be usefull to clip data if sensors go out of observation space.
-        # self.sensors_data = np.clip(self.sensors_data, self.observation_space.low, self.observation_space.high)
+        self.sensors_data = np.clip(self.sensors_data, self.observation_space.low, self.observation_space.high)
 
         print("Observation")
         print(self.last_ina219)
@@ -345,7 +341,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         Retrieve the current state information of the robot.
 
         Returns:
-            dict: A dictionary containing usefull information about the env. 
+            dict: A dictionary containing useful information about the env. 
         """
 
         return {
@@ -486,13 +482,13 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             elif self.Joint3Position == 1:
                 self.Joint3Position -= 1
                 print("0-1 = joint3 at pos 0")
-                motor2CWW()
+                motor3CWW()
                 
             elif self.Joint3Position == 2:
                 self.Joint3Position -= 2
                 print("2-2 = joint3 at pos 0")
-                motor2CWW()
-                motor2CWW()
+                motor3CWW()
+                motor3CWW()
                 
             else:
                 print("Action error: action out of bounds")
@@ -501,7 +497,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             if self.Joint3Position == 0:
                 self.Joint3Position += 1
                 print("0+1 = joint3 at pos 1")
-                motor2CW()
+                motor3CW()
                 
             elif self.Joint3Position == 1:
                 self.Joint3Position += 0
@@ -510,7 +506,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             elif self.Joint3Position == 2:
                 self.Joint3Position -= 1
                 print("joint3 at pos 2")
-                motor2CWW()
+                motor3CWW()
 
             else:
                 print("Action error: action out of bounds")
@@ -519,13 +515,13 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             if self.Joint3Position == 0:
                 self.Joint3Position += 2
                 print("0+2 = joint3 at pos 2")
-                motor2CW()
-                motor2CW()
+                motor3CW()
+                motor3CW()
                 
             elif self.Joint3Position == 1:
                 self.Joint3Position += 1
                 print("1+1 = joint3 at pos 2")
-                motor2CW()
+                motor3CW()
                 
             elif self.Joint3Position == 2:
                 self.Joint3Position += 0
@@ -601,7 +597,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
         #update current battery reading 
 
-        if self.current_max17048["cell_voltage"] <=0:
+        if self.current_max17048["cell_voltage"] <= 3.0:
             terminated = True
         else:
             terminated = False
@@ -610,11 +606,10 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         #end of step
         time.sleep(2)
-        print("Action: {}, Battery: {}, Reward: {}".format(action,self.battery_charge, reward))
+        print("Action: {}, Voltage: {:.3f}, Reward: {}".format(action, self.current_max17048["cell_voltage"], reward))
         
         info = self._get_info()
 
-        #self.last_battery_charge = self.battery_charge
         return observation, reward, terminated, truncated, info
 
     def close(self):
