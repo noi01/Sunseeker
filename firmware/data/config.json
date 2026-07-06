@@ -1,0 +1,13 @@
+{
+    "ssid":"TP-Link_FAC6",
+    "pswd":"73863458",
+    "dhcp":false,
+    "ip":[192,168,0,125],
+    "ports":[
+        {"type":"portC", "units":[{"model":"sensor_generic","io":0,"alpha":0.5}]},
+        {"type":"portC", "units":[{"model":"sensor_generic","io":0,"alpha":0.5}]},
+        {"type":"portC", "units":[{"model":"sensor_generic","io":0,"alpha":0.5}]},
+        {"type":"portA", "units":[{"model":"sensor_ina219","io":1,"alpha":0.0},
+                                  {"model":"sensor_max17048","io":1,"alpha":0.0}]
+        }]
+}
