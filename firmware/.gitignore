@@ -1,0 +1,5 @@
+.pio
+.pio-mcp-workspace
+.vscode
+logs
+test
