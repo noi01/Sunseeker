@@ -18,6 +18,7 @@ Second_Sensor = None
 if board.board_id == "GENERIC_LINUX_PC":
     print("USING FAKE SENSORS")
 
+'''
     class INA219:
         def __init__(self, rng):
             self.rng = rng
@@ -76,9 +77,17 @@ if board.board_id == "GENERIC_LINUX_PC":
         def shunt_voltage(self) -> float:
             """Shunt voltage in millivolts."""
             return self.current * 0.1  # Assuming 0.1Ω shunt resistor
+'''
 
     
 
+### Classes for Misbikit
+
+
+
+### Sensors
+
+'''
     class DigitalInOut:
         def __init__(self,rng):
             self.rng=rng
@@ -88,6 +97,112 @@ if board.board_id == "GENERIC_LINUX_PC":
         def value(self):
             """The Fake Digital Pin Value"""
             return self.rng.choice([0, 1])
+            
+ '''           
+
+            
+
+
+
+### !! ### For Etienne, I'm not sure if I need a seperate class for each sensor even if they are the same
+
+#Sensor for Water Organ 1-3 are a Water Levele sensor (Grove / https://wiki.seeedstudio.com/Grove-Water-Level-Sensor/) placed within each hanging water vessel.
+
+    class WaterOrgan1:
+        def __init__(self,rng):
+            self.rng=rng
+            pass
+
+        @property
+        def value(self):
+            """The Fake Digital Pin Value"""
+            return self.rng.choice([0, 10])  
+            
+    class WaterOrgan2:
+        def __init__(self,rng):
+            self.rng=rng
+            pass
+
+        @property
+        def value(self):
+            """The Fake Digital Pin Value"""
+            return self.rng.choice([0, 10])
+    
+    class WaterOrgan3:
+        def __init__(self,rng):
+            self.rng=rng
+            pass
+
+        @property
+        def value(self):
+            """The Fake Digital Pin Value"""
+            return self.rng.choice([0, 10])
+            
+            
+
+# Heart pump vessel water level
+       
+    class HeartPumpWaterSensor:
+        def __init__(self, rng=None):
+            self.rng=random.randint(1,100)
+            pass
+
+        @property
+        def value(self):
+            """The Fake Digital Pin Value"""
+### ! ### For Etienne :      return self.rng.choice([0, 10]) was not working for me for passing between classes, maybe I messed something up so used this   
+            rngValue = self.rng 
+            return rngValue 
+
+
+
+
+
+
+# Boleean if the hardware drowned or not
+
+    class AquariumWaterLevel:
+        def __init__(self,rng):
+            self.rng=rng
+            pass
+
+        @property
+        def value(self):
+            """The Fake Digital Pin Value"""
+            return self.rng.choice([0, 1])
+            
+
+
+
+### Physicial Motor Controls
+
+            
+### !! ###  For Etienne, should I make this into class
+### Water solenoid control
+
+    # Opens solenoid valve 1 for certain duration
+    def solenoid_1_ON():
+        print("solenoid 1")
+
+    # Opens solenoid valve 2 for certain duration
+    def solenoid_2_ON():
+        print("solenoid 2")
+
+    # Opens solenoid valve 3 for certain duration
+    def solenoid_3_ON():
+        print("solenoid 3")
+
+    #  Opens the fourth valve that feeds back into main tank if none of soloneid valves were selected
+    def solenoid_NONE():
+        print("solenoid 4")        
+            
+            
+
+    
+            
+            
+
+            
 
 else:
     import digitalio
@@ -95,101 +210,144 @@ else:
 
     # Second_Sensor = digitalio.DigitalInOut(board.D7)
 
-    # Second_Sensor.direction = digitalio.Direction.INPUT
-
-    # i2c_bus = board.I2C()  # uses board.SCL and board.SDA
-
-    # ina219 = INA219(i2c_bus)
 
 
-### Deleted everything from the motor instructions outside of print, because it's not important for testing / treat as placeholder
-# Motor 1
-def motorOFF():
-    print(" motor01 OFF")
+### This is a stopwatch class for counting the time elapsed between when the "heart" bladder is empty and full
 
-def motorCW():
-    print(" motor01 CW")
+class Heartpump:
+    def __init__(self):
+        self.start_time = 0
+        self.elapsed_time = 0
+        self.heartWaterLevelHigh = False
 
-def motorCWW():
-    print(" motor01 CWW")
+    def start(self):        #Heartpump.start()
+        if not self.heartWaterLevelHigh:
+            self.start_time = time.time() - self.elapsed_time
+            self.heartWaterLevelHigh = True
 
+    def stop(self):        #Heartpump.stop()
+        if self.heartWaterLevelHigh:
+            self.elapsed_time = time.time() - self.start_time
+            self.heartWaterLevelHigh = False
 
-# Motor 2
-def motor2OFF():
-    print(" motor02 OFF")
+    def reset(self):       #Heartpump.reset()
+        self.start_time = 0
+        self.elapsed_time = 0
+        self.heartWaterLevelHigh = False
 
-def motor2CW():
-    print(" motor02 CW")
-
-def motor2CWW():
-    print(" motor02 CWW")
-
-
-# Motor 3
-def motor3OFF():
-    print(" motor03 OFF")
-
-def motor3CW():
-    print(" motor03 CW")
-
-def motor3CWW():
-    print(" motor03 CCW")
+    def get_elapsed_time(self):     #Heartpump.get_elapsed_time()
+        if self.heartWaterLevelHigh:
+            return time.time() - self.start_time
+        return self.elapsed_time
 
 
 
 
 
-# `### Description
+class HeartPumpControl:
+   def process_data(self):
+       hpws = HeartPumpWaterSensor()
+       result = hpws.value
+       result2 = hpws.value -10
+       if result > 10:
+           print(f"Pump On, water level: {result}")
+               #pump on
+       else :
+               #pump off
+           print(f"Pump OFF, water level: {result}")
 
-# This environment is for real time learning of hardware based agent. 
-
-# For this example implementation the objective (goal) of the agent is to gather solar energy by turning solar panel towards the sun/light an increasing the charge of it's battery. At agents disposal are inputs from two sensors, the solar panel acting as a light sensor(Sensor 1), and second sensor that does not play part in energy gathering(Sensor 2).
-# There is also third sensor (Sensor 3) - pertaining to charge of battery - that does not play part in the observation space, but only in reward calculation.
-
-
-# ### Observation Space
-
-# The observation is a `ndarray` with shape `(2,)` with the values
-
-
-# | Num | Observation           | Min                 | Max               |
-# |-----|-----------------------|---------------------|-------------------|
-# | 0   | Sensor 1: Solar Panel | to be filed         | to be filed       |
-# | 1   | Sensor 2              | to be filed         | to be filed       |
+     #  print(f"Processed: {result}")
+      # print(f"Processed: {result2}")
 
 
-# ### Action Space
-
-# The action is a discreet space of 9 corresponding to 3 predetermined joint position for each of of 3 legs.
 
 
-# ### Rewards
+'''
+`### Description
+
+This environment is for real time learning of hardware based agent.
+
+The objective (goal) of the agent is to continuosly manage water level bewteen the main water tank and placed within it water organs,
+so that the water level does not reach the hardware enclosure place in the middle of the main tank.
 
 
-# The reward is calculated by comparing the current battery charge (Sensor 3) with battery charge at previous time step. The reward is (+1) for battery charge increasing, and negative reward (-1) for battery charge decreasing. The reward is calculated at every step.
+### Observation Space
+
+The observation is a `ndarray` with shape `(2,)` with the values
 
 
-# ### Starting State
-
-# To be filled in
-
-
-# ### Episode End
-
-# The episode ends if any one of the following occurs:
-
-# Termination: Battery charge depletes to 0
-
-# Truncation: To be filled in
+| Num | Observation                           | Min                 | Max               |
+|-----|---------------------------------------|---------------------|-------------------|
+| 0   | Water Organ 1                         | to be filed         | to be filed       |
+| 1   | Water Organ 2                         | to be filed         | to be filed       |
+| 2   | Water Organ 3                         | to be filed         | to be filed       |
+| 3   | Heartbeatpump.get_elapsed_time        | to be filed         | to be filed       |
 
 
-# ### Learning loop structure (Step description)
+Sensor for Water Organ 1-3 are a Water Levele sensor (Grove / https://wiki.seeedstudio.com/Grove-Water-Level-Sensor/) placed within each hanging water vessel.
 
-# 1. The agent receives observation from Sensor 1 and Sensor 2
+Heartbeatpump.get_elapsed_time is an observation that meassures time elapsed between when heart water bladder going from empty to full. It uses Heartpump class.
 
-# 2. The agent choses an action from the discreete action space of 9
 
-# 3. The rewards is calculated by comparing Sensor 3 at current time step to Sensor 3 at previous time step. If battery reaches 0 - the learning ends.
+### Action Space
+
+The actions available to the agents is opening each of the three solenoid valves. The each valve connects the heart recepticle with one of the water organs.
+
+The action is a discreet space of 8, corresponding to:
+
+| Action number | Action                                                                          |
+|---------------|---------------------------------------------------------------------------------|
+| 0             | No water passed to Water Organs, water goes straigh back to recepticle          |
+| 1             | Water passed to Water Organ 1                                                   |
+| 2             | Water passed to Water Organ 2                                                   |
+| 3             | Water passed to Water Organ 3                                                   |
+| 4             | Water passed to Water Organ 1 & 2                                               |
+| 5             | Water passed to Water Organ 1 & 3                                               |
+| 6             | Water passed to Water Organ 2 & 3                                               |
+| 7             | Water passed to Water Organ 1, 2 & 3                                            |
+
+There is no specific amount of water passsed to each recepticle, each action corresponds to solenoid being open for a certain set duration of time while the pump is active.
+
+
+### Rewards
+
+The reward is a binary, taking agent_drowned sensor:
+    If FALSE - the water did not reach hardware enclosure place and agent survived the cycle, the agent rewarded = 1. 
+    If TRUE - the agent drowned, episode restarts, the agent rewarded = 0.
+
+Based on Based on Yoshida, N. (2017). Homeostatic Agent for General Environment. Journal of Artificial General Intelligence p.4, 
+Where reward (1) is equated to alive flag (1) vs dead flag (0) on Agent state.
+
+
+### Starting State
+
+To be filled in @_@
+
+
+### Episode End
+
+The episode ends if any one of the following occurs:
+
+Agent drowned itself:
+    agent_drowned sensor = TRUE
+
+Truncation: To be filled in
+
+
+### Learning loop structure (Step description)
+
+1. The step starts when the heart water vessel is empty
+
+2. The agent receives observation from the water organs 1-3 and time elapsed between heart water vessel going from empty to full
+
+3. Heart water vessel becaming full automatically starts the water pump, which triggers action choice
+
+4. The agent choses an action from the discreete action space of 8 on how to distrubute water
+
+
+
+'''
+
 
 
 class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
@@ -197,6 +355,9 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
     def __init__(self):
         super().__init__()
 
+
+        #Misbikit setup
+        
         self.mbk = MisBKit()
         self.mbk._handle_sensor_data = self._parse_received_data
         self.mbk.connect()
@@ -207,31 +368,58 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         )
         self._sensor_poll_thread.start()
         
-        self.JointPosition = 0
-        self.Joint2Position = 0
-        self.Joint3Position = 0
+ 
 
         #delaring sensors as part of the environment
         if board.board_id == "GENERIC_LINUX_PC":
-            self.ina219 = INA219(self.np_random)
-            self.dummy_sensor = DigitalInOut(self.np_random)
+          
+        #Added 
+        
+        #Sensor accessible to the agent:  
+        
+            self.waterORGANobs_1 = WaterOrgan1(self.np_random)
+            self.waterORGANobs_2 = WaterOrgan2(self.np_random)
+            self.waterORGANobs_3 = WaterOrgan3(self.np_random)
+
+        
+        #Sensor not for accessible to the agent:
+        
+        #Sensor if the heart recepticle is full
+            self.heart_full_sensor = HeartPumpWaterLvL(self.np_random)
+            
+            
+        #Sensor that the agent 'drowned'    
+            self.agent_drowned = AquariumWaterLevel(self.np_random)
+            
+            
         else:
             self.dummy_sensor = digitalio.DigitalInOut(board.D7)
             self.dummy_sensor.direction = digitalio.Direction.INPUT
             self.ina219 = INA219(board.I2C())
 
 
-        #why is this 10bit integer value if sensor data is float?
-        self.Sensor_2_max = 1023  # INA219
-        self.Sensor_2_min = 0
 
-        self.Sensor_1_max = 1023  # Other sensor
+
+        #why is this 10bit integer value if sensor data is float?
+        ## N: No idea
+        
+        self.Sensor_1_max = 1023  # waterORGANobs_1
         self.Sensor_1_min = 0
 
-        self.sensors_data = np.array([0,0],dtype=np.float32)
+        self.Sensor_2_max = 1023  # waterORGANobs_2
+        self.Sensor_2_min = 0
         
-        self.battery_charge= 0
-        self.last_battery_charge = 0
+        self.Sensor_3_max = 1023  # waterORGANobs_3
+        self.Sensor_3_min = 0
+        
+        self.Sensor_4_max = 1023  # heart_full_sensor
+        self.Sensor_4_min = 0
+        
+
+        
+        
+
+        self.sensors_data = np.array([0,0],dtype=np.float32)
 
         self.last_ina219 = {
             "current" : 0,
@@ -246,34 +434,39 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             "shunt_voltage" : 0,
             "power" : 0
         }
-
         self.last_max17048 = {
             "cell_voltage" : 0,
             "percent" : 0,
             "rate":0
         }
-
         self.current_max17048 = {
-            "cell_voltage" : 0,
-            "percent" : 0,
+            "cell_voltage" : 3.7,
+            "percent" : 50,
             "rate":0
         }
+        
+        
         # define what actions are available to the agent
-        self.action_space = spaces.Discrete(9)
+        self.action_space = spaces.Discrete(8)
 
         #define env observations
         self.observation_space = spaces.Box(
             low=np.array(
                 [
-                    self.Sensor_2_min, #is it important that sensor2 is first?
-                    self.Sensor_1_min,
+                    self.Sensor_1_min, 
+                    self.Sensor_2_min,
+                    self.Sensor_3_min,
+                    self.Sensor_4_min,
+                    
                 ],
                 dtype=np.float32,
             ),
             high=np.array(
                 [
-                    self.Sensor_2_max,
                     self.Sensor_1_max,
+                    self.Sensor_2_max,
+                    self.Sensor_3_max,
+                    self.Sensor_4_max,
                 ],
                 dtype=np.float32,
             ),
@@ -327,13 +520,14 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         Returns:
             np.ndarray: The observation from the environment.
         """
+        
         # it seemed like the second sensor was never updated in the original code so i'm only
         # updating the current sensor. If other sensors are to be sampled add it here
         
         self.sensors_data[0] = np.float32(self.current_ina219["current"])  # Solar_panel
         self.sensors_data[1] = np.float32(self.current_max17048["cell_voltage"])
-        #commented for now, but it could be usefull to clip data if sensors go out of observation space.
-        # self.sensors_data = np.clip(self.sensors_data, self.observation_space.low, self.observation_space.high)
+        
+        self.sensors_data = np.clip(self.sensors_data, self.observation_space.low, self.observation_space.high)
 
         print("Observation")
         print(self.last_ina219)
@@ -345,7 +539,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         Retrieve the current state information of the robot.
 
         Returns:
-            dict: A dictionary containing usefull information about the env. 
+            dict: A dictionary containing useful information about the env. 
         """
 
         return {
@@ -355,184 +549,79 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             "step_count": self.step_count,
         }
 
+
+
+
+
+
+
+###### DONE #####
     def _move_robot(self, action):
         """
-        Move the robot's joints based on the given action.
-
-        The function adjusts the positions of the robot's actuators according to the specified action.
-        Each action corresponds to a specific movement of the joints.
+        
+        Solenoid actions
+        
         Args:
             action (int): The action to perform
         """
+
+## No solenoid open - water goes straight back to receptacle
+
         if action == 0: 
-            if self.JointPosition == 0:
-                self.JointPosition += 0
-                print("joint at pos 0")
-                
-            elif self.JointPosition == 1:
-                self.JointPosition -= 1
-                print("1-1 = joint at pos 0")
-                motorCWW()
-                
-            elif self.JointPosition == 2:
-                self.JointPosition -= 2
-                print("2-2 = joint at pos 0")
-                motorCWW()
-                motorCWW()
-                
+            solenoid_NONE():
             else:
                 print("Action error: action out of bounds")
 
+## Single valve open actions
+
         elif action == 1:
-            if self.JointPosition == 0:
-                self.JointPosition += 1
-                print("0+1 = joint at pos 1")
-                motorCW()
-                
-            elif self.JointPosition == 1:
-                self.JointPosition += 0
-                print("joint at pos 1")
-                
-            elif self.JointPosition == 2:
-                self.JointPosition -= 1
-                print("2-1 = joint at pos 1")
-                motorCWW()
-                
+            solenoid_1_ON()        
             else:
                 print("Action error: action out of bounds")
 
         elif action == 2:
-            if self.JointPosition == 0:
-                self.JointPosition += 2
-                print("0+2 = joint at pos 2")
-                motorCW()
-                motorCW()
-                
-            elif self.JointPosition == 1:
-                self.JointPosition += 1
-                print("1+1 = joint at pos 2")
-                motorCW()
-                
-            elif self.JointPosition == 2:
-                self.JointPosition += 0
-                print("joint at pos 2")
-                
+            solenoid_2_ON()
             else:
                 print("Action error: action out of bounds")
 
-        elif action == 3: #Motor2 pos 0
-            if self.Joint2Position == 0:
-                self.Joint2Position += 0
-                print("joint2 at pos 0")
-
-                
-            elif self.Joint2Position == 1:
-                self.Joint2Position -= 1
-                print("0-1 = joint2 at pos 0")
-                motor2CWW()
-                
-            elif self.Joint2Position == 2:
-                self.Joint2Position -= 2
-                print("2-2 = joint2 at pos 0")
-                motor2CWW()
-                motor2CWW()
-                
+        elif action == 3: 
+            solenoid_3_ON()  
             else:
                 print("Action error: action out of bounds")
 
-        elif action == 4: #Motor2 pos 1
-            if self.Joint2Position == 0:
-                self.Joint2Position += 1
-                print("0+1 = joint2 at pos 1")
-                motor2CW()
-                
-            elif self.Joint2Position == 1:
-                self.Joint2Position += 0
-                print("joint2 at pos 1")
-                
-            elif self.Joint2Position == 2:
-                self.Joint2Position -= 1
-                print("joint2 at pos 2")
-                motor2CWW()
+## Double valves open action
 
+        elif action == 4: 
+            solenoid_1_ON()
+            solenoid_2_ON()
             else:
                 print("Action error: action out of bounds")
 
         elif action == 5: #Motor2 pos 2
-            if self.Joint2Position == 0:
-                self.Joint2Position += 2
-                print("0+2 = joint2 at pos 2")
-                motor2CW()
-                motor2CW()
-                
-            elif self.Joint2Position == 1:
-                self.Joint2Position += 1
-                print("1+1 = joint2 at pos 2")
-                motor2CW()
-                
-            elif self.Joint2Position == 2:
-                self.Joint2Position += 0
-                print("joint2 at pos 2")
-
+            solenoid_1_ON()
+            solenoid_3_ON()
             else:
                 print("Action error: action out of bounds")
 
         elif action == 6: #Motor3 pos 0
-            if self.Joint3Position == 0:
-                self.Joint3Position += 0
-                print("joint3 at pos 0")
-
-                
-            elif self.Joint3Position == 1:
-                self.Joint3Position -= 1
-                print("0-1 = joint3 at pos 0")
-                motor2CWW()
-                
-            elif self.Joint3Position == 2:
-                self.Joint3Position -= 2
-                print("2-2 = joint3 at pos 0")
-                motor2CWW()
-                motor2CWW()
-                
+            solenoid_2_ON()
+            solenoid_3_ON()
             else:
                 print("Action error: action out of bounds")
+
+## Triple valves open action
 
         elif action == 7: #Motor3 pos 1
-            if self.Joint3Position == 0:
-                self.Joint3Position += 1
-                print("0+1 = joint3 at pos 1")
-                motor2CW()
-                
-            elif self.Joint3Position == 1:
-                self.Joint3Position += 0
-                print("joint3 at pos 1")
-                
-            elif self.Joint3Position == 2:
-                self.Joint3Position -= 1
-                print("joint3 at pos 2")
-                motor2CWW()
-
+            solenoid_1_ON()
+            solenoid_2_ON()
+            solenoid_3_ON()
             else:
                 print("Action error: action out of bounds")
 
-        elif action == 8: #Motor3 pos 2
-            if self.Joint3Position == 0:
-                self.Joint3Position += 2
-                print("0+2 = joint3 at pos 2")
-                motor2CW()
-                motor2CW()
-                
-            elif self.Joint3Position == 1:
-                self.Joint3Position += 1
-                print("1+1 = joint3 at pos 2")
-                motor2CW()
-                
-            elif self.Joint3Position == 2:
-                self.Joint3Position += 0
-                print("joint3 at pos 2")
-                
-            else:
-                print("Action error: action out of bounds")
+
+
+
+
 
     def reset(self, seed: Optional[int] = None,options: Optional[dict] = None,):
         """
@@ -559,6 +648,11 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         return obs, info
     
     def calculate_reward(self):
+        
+        # Based on Yoshida, N. (2017). Homeostatic Agent for General Environment. Journal of Artificial General Intelligence p.4
+        # The alive (1) vs dead (0) Agent state 
+
+        
         reward = 0
         if self.current_max17048["cell_voltage"] > self.last_max17048["cell_voltage"]:
             reward = 1
@@ -599,9 +693,11 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         self._move_robot(action)
         observation = self._get_obs()
 
+        
+        
         #update current battery reading 
 
-        if self.current_max17048["cell_voltage"] <=0:
+        if self.current_max17048["cell_voltage"] <= 3.0:
             terminated = True
         else:
             terminated = False
@@ -610,11 +706,10 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         #end of step
         time.sleep(2)
-        print("Action: {}, Battery: {}, Reward: {}".format(action,self.battery_charge, reward))
+        print("Action: {}, Voltage: {:.3f}, Reward: {}".format(action, self.current_max17048["cell_voltage"], reward))
         
         info = self._get_info()
 
-        #self.last_battery_charge = self.battery_charge
         return observation, reward, terminated, truncated, info
 
     def close(self):
