@@ -111,18 +111,27 @@ class DqnAgent:
 
     def replay(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)
-        for state, action, reward, next_state, done in minibatch:
-            target = reward
-            if not done:
-                target = (reward + self.gamma *
-                          np.amax(self.model.predict(next_state)[0]))
-            target_f = self.model.predict(state)
-            target_f[0][action] = target
+        states = np.zeros((batch_size, self.state_size))
+        next_states = np.zeros((batch_size, self.state_size))
+        actions, rewards, dones = [], [], []
 
-            h = self.model.fit(state, target_f, epochs=1, verbose=0)
-        print(h.history)  
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
+        for i, (state, action, reward, next_state, done) in enumerate(minibatch):
+            states[i] = state[0]
+            next_states[i] = next_state[0]
+            actions.append(action)
+            rewards.append(reward)
+            dones.append(done)
+
+        q_next = self.model.predict(next_states, verbose=0)
+        q_target = self.model.predict(states, verbose=0)
+
+        for i in range(batch_size):
+            if dones[i]:
+                q_target[i][actions[i]] = rewards[i]
+            else:
+                q_target[i][actions[i]] = rewards[i] + self.gamma * np.amax(q_next[i])
+
+        self.model.fit(states, q_target, epochs=1, verbose=0)
   
     def load(self, name):
         print("Loading model: {}".format(name))
@@ -164,7 +173,7 @@ def build_paths():
     path_to_save_folder = os.path.join(os.getcwd(),FOLDER_TO_SAVE_TO)
     path_to_experiment_folder = os.path.join(path_to_save_folder,experiment_name)
     path_to_model = os.path.join(path_to_experiment_folder, agent_name)
-    path_to_output = os.path.join(path_to_experiment_folder, "_ouptut.csv")
+    path_to_output = os.path.join(path_to_experiment_folder, "_output.csv")
     return path_to_experiment_folder, path_to_model, path_to_output
 
 
@@ -196,6 +205,7 @@ if __name__ == "__main__":
     os.makedirs(path_to_experiment_folder, exist_ok= True)
     output_file = open(path_to_output,"w+")
 
+    output_file.write("episode,steps,reward,epsilon\n")
     print("Experiment folder setup")
 
     #Environment 
@@ -232,7 +242,6 @@ if __name__ == "__main__":
             state = np.reshape(state, [1, state_size])
 
             #timestep loop
-            #it looks like some of this code should be written inside the env code instead of the training loop
             print("==============================================================")
             while not done:
 
@@ -242,10 +251,8 @@ if __name__ == "__main__":
                 print(info)
                 if truncated:
                     print("Episode truncated")
-                    #implement the truncation logic here
                     break
 
-                #here implement the reward logic through episodes.
                 reward = reward if not done else -10
 
                 observation = np.reshape(observation, [1, state_size])
@@ -253,28 +260,23 @@ if __name__ == "__main__":
 
                 state = observation
 
+                if len(agent.memory) > args.batch_size:
+                    agent.replay(args.batch_size)
+                    if agent.epsilon > agent.epsilon_min:
+                        agent.epsilon *= agent.epsilon_decay
+
                 if done:
-                    #shouldnt score be  formated with reward instead of time?
                     print("Episode done")
                     print("Episode: {}/{}, score: {}, epsilon: {:.2}".format(episode_count, args.episode, info["step_count"], agent.epsilon))
-                    # agent.printWeights()
-                    #format ouptut and write to csv file
-                    output = str(e) + ", " + str(info["step_count"]) + ", " + str(agent.epsilon) + "\n"
+                    output = str(e) + ", " + str(info["step_count"]) + ", " + str(reward) + ", " + str(agent.epsilon) + "\n"
                     output_file.write(output)
                     output_file.flush()
 
-                    # save model if interval is reached and this is not the last episode
                     if episode_count % args.save_interval == 0 and episode_count != args.episode:
                         print("Saving model checkpoint at EPOCH {}".format(episode_count))
                         checkpoint_name = "{}_epoch{:02d}".format(path_to_model,episode_count)
                         agent.save(checkpoint_name)
                     continue
-
-                    # breaking here makes the code get out of the loop and never reaches the code under this statement.
-                    # agent is always done in a single step so it is never possible to either replay or save
-
-                if len(agent.memory) > args.batch_size:
-                    agent.replay(args.batch_size)
 
         print("All episodes completed.")
         print("Saving final model")
