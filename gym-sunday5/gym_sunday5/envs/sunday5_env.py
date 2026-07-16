@@ -16,95 +16,13 @@ ina219 = None
 Second_Sensor = None
 # if board is not connected use fake INA219 sensor
 if board.board_id == "GENERIC_LINUX_PC":
-    print("USING FAKE SENSORS")
-
-'''
-    class INA219:
-        def __init__(self, rng):
-            self.rng = rng
-            self.bus_voltage_range = 0x00
-            self.gain = 0x00
-            self.bus_adc_resolution = 0x00
-            self.shunt_adc_resolution = 0x00
-            self.mode = 0x05
-
-            # Solar panel simulation parameters
-            self._max_voltage = 18.0
-            self._max_current = 1000.0  # in mA
-            self._output_level = 0.5  # 0.0 to 1.0
-
-            # INA219 calibration values
-            self._cal_value = 4096
-            self._power_lsb = 2.0  # mW per bit
-            self._raw_calibration = self._cal_value
-
-        def set_output_level(self, level):
-            """Set solar panel output level (0.0 to 1.0)"""
-            self._output_level = max(0.0, min(1.0, level))
-
-        @property
-        def current(self) -> float:
-            """The current through the shunt resistor in milliamps."""
-            base_current = self._max_current * self._output_level
-            noise =  self.rng.uniform(-50, 50)  # ±50mA noise
-            return max(0.0, base_current + noise)
-
-        @property
-        def voltage(self) -> float:
-            """The bus voltage in volts."""
-            base_voltage = self._max_voltage * (0.7 + 0.3 * self._output_level)
-            noise =  self.rng.uniform(-0.1, 0.1)  # ±0.1V noise
-            return max(0.0, base_voltage + noise)
-
-        @property
-        def power(self) -> float:
-            """The power through the load in Watt."""
-            # Sometimes a sharp load will reset the INA219, which will
-            # reset the cal register, meaning CURRENT and POWER will
-            # not be available ... always setting a cal
-            # value even if it's an unfortunate extra step
-            self._raw_calibration = self._cal_value
-            # Now we can safely read the CURRENT register!
-            return self.raw_power * self._power_lsb / 1000.0  # Convert mW to W
-
-        @property
-        def raw_power(self) -> int:
-            """Raw power register value."""
-            power_mw = self.voltage * self.current  # V * mA = mW
-            return int(power_mw / self._power_lsb)
-
-        @property
-        def shunt_voltage(self) -> float:
-            """Shunt voltage in millivolts."""
-            return self.current * 0.1  # Assuming 0.1Ω shunt resistor
-'''
-
-    
+    print("USING FAKE SENSORS") 
 
 ### Classes for Misbikit
 
+### Sensors  
 
-
-### Sensors
-
-'''
-    class DigitalInOut:
-        def __init__(self,rng):
-            self.rng=rng
-            pass
-
-        @property
-        def value(self):
-            """The Fake Digital Pin Value"""
-            return self.rng.choice([0, 1])
-            
- '''           
-
-            
-
-
-
-### !! ### For Etienne, I'm not sure if I need a seperate class for each sensor even if they are the same
+### ! ### For Etienne, I'm not sure if I need a seperate class for each sensor even if they are the same. I'm nor even sure if this is needed for when mskbkit is functioning.
 
 #Sensor for Water Organ 1-3 are a Water Levele sensor (Grove / https://wiki.seeedstudio.com/Grove-Water-Level-Sensor/) placed within each hanging water vessel.
 
@@ -139,21 +57,22 @@ if board.board_id == "GENERIC_LINUX_PC":
             return self.rng.choice([0, 10])
             
             
+            
+            
 
 # Heart pump vessel water level
        
     class HeartPumpWaterSensor:
         def __init__(self, rng=None):
-            self.rng=random.randint(1,100)
+            self.rng=random.randint(1,10)
             pass
 
         @property
         def value(self):
             """The Fake Digital Pin Value"""
-### ! ### For Etienne :      return self.rng.choice([0, 10]) was not working for me for passing between classes, maybe I messed something up so used this   
+### ! ### For Etienne : return self.rng.choice([0, 10]) was not working for me for passing between classes, maybe I messed something up so used this   
             rngValue = self.rng 
             return rngValue 
-
 
 
 
@@ -177,7 +96,7 @@ if board.board_id == "GENERIC_LINUX_PC":
 ### Physicial Motor Controls
 
             
-### !! ###  For Etienne, should I make this into class
+### ! ###  For Etienne, should I make this into class
 ### Water solenoid control
 
     # Opens solenoid valve 1 for certain duration
@@ -195,20 +114,14 @@ if board.board_id == "GENERIC_LINUX_PC":
     #  Opens the fourth valve that feeds back into main tank if none of soloneid valves were selected
     def solenoid_NONE():
         print("solenoid 4")        
-            
-            
-
-    
-            
-            
-
-            
+                    
 
 else:
-    import digitalio
-    from adafruit_ina219 import ADCResolution, BusVoltageRange, INA219
+    print("mbk not connected")
 
-    # Second_Sensor = digitalio.DigitalInOut(board.D7)
+
+
+
 
 
 
@@ -243,23 +156,41 @@ class Heartpump:
 
 
 
-
 class HeartPumpControl:
    def process_data(self):
        hpws = HeartPumpWaterSensor()
        result = hpws.value
-       result2 = hpws.value -10
-       if result > 10:
+
+       while result > 1:
            print(f"Pump On, water level: {result}")
                #pump on
        else :
-               #pump off
+              
            print(f"Pump OFF, water level: {result}")
-
-     #  print(f"Processed: {result}")
-      # print(f"Processed: {result2}")
+            #pump off
 
 
+
+
+
+
+# Count time for a heart to go from 
+
+def HeartBeatRythm(self):
+    hpws2 = HeartPumpWaterSensor()
+    hp = Heartpump()
+    result2 = hpws2.value
+        while result2 < 11
+            if result2 == 0:
+                hp.start()
+                print('Heartbeat stowatch start')
+            elif result2 == 10:
+                hp.stop()
+                print(f'Heartbeat stowatch stop. Elapsed time: {hp.get_elapsed_time()} seconds')
+                return hp.get_elapsed_time()
+            else:
+                print('stopwatch ongoing')
+            
 
 
 '''
@@ -370,7 +301,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
  
 
-        #delaring sensors as part of the environment
+#delaring sensors as part of the environment
         if board.board_id == "GENERIC_LINUX_PC":
           
         #Added 
@@ -382,10 +313,11 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             self.waterORGANobs_3 = WaterOrgan3(self.np_random)
 
         
-        #Sensor not for accessible to the agent:
+   #    #Sensor not for accessible to the agent:
         
         #Sensor if the heart recepticle is full
-            self.heart_full_sensor = HeartPumpWaterLvL(self.np_random)
+        
+            self.heart_full_sensor = HeartPumpWaterSensor.value
             
             
         #Sensor that the agent 'drowned'    
@@ -393,11 +325,11 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             
             
         else:
-            self.dummy_sensor = digitalio.DigitalInOut(board.D7)
-            self.dummy_sensor.direction = digitalio.Direction.INPUT
-            self.ina219 = INA219(board.I2C())
+            print("mbk not connected")
 
 
+
+        heart_beat_rythm = HeartBeatRythm
 
 
         #why is this 10bit integer value if sensor data is float?
@@ -417,10 +349,19 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
 
         
+            
+        
         
 
         self.sensors_data = np.array([0,0],dtype=np.float32)
 
+
+
+
+
+        
+
+'''
         self.last_ina219 = {
             "current" : 0,
             "voltage" : 0,
@@ -445,7 +386,8 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             "rate":0
         }
         
-        
+ '''
+               
         # define what actions are available to the agent
         self.action_space = spaces.Discrete(8)
 
@@ -480,7 +422,8 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             
 
     
-    
+### ! ### For Etienne - not sure what this is, I'll leave this for now untouched
+   
     def _parse_received_data(self, val):
         print("popa")
         i2c_port = val["ports"][3]
@@ -508,6 +451,8 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
     def _poll_sensor_data(self):
         while not self._sensor_poll_stop.wait(2.0):
             self.mbk.request_sensor_data()
+            
+        
 
     def _get_obs(self):
         """
@@ -526,13 +471,20 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         self.sensors_data[0] = np.float32(self.current_ina219["current"])  # Solar_panel
         self.sensors_data[1] = np.float32(self.current_max17048["cell_voltage"])
+        self.sensors_data[2] = np.float32(self.current_ina219["current"])  # Solar_panel
+        self.sensors_data[3] = np.float32(self.heart_beat_rythm)
         
         self.sensors_data = np.clip(self.sensors_data, self.observation_space.low, self.observation_space.high)
 
         print("Observation")
         print(self.last_ina219)
         print(self.last_max17048)
+        
         return np.array(self.sensors_data, dtype=np.float32)
+
+
+
+
 
     def _get_info(self):  
         """
@@ -555,7 +507,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
 
 
-###### DONE #####
+
     def _move_robot(self, action):
         """
         
@@ -648,16 +600,14 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         return obs, info
     
     def calculate_reward(self):
-        
-        # Based on Yoshida, N. (2017). Homeostatic Agent for General Environment. Journal of Artificial General Intelligence p.4
-        # The alive (1) vs dead (0) Agent state 
 
         
         reward = 0
-        if self.current_max17048["cell_voltage"] > self.last_max17048["cell_voltage"]:
+        if self.agent_drowned() == 0:
             reward = 1
-        elif self.current_max17048["cell_voltage"] < self.last_max17048["cell_voltage"]:
+        elif self.agent_drowned() > 0:
             reward = -1
+   
 
         return reward
         
@@ -682,6 +632,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         """
 
         err_msg = f"{action!r} ({type(action)}) invalid"
+        
         assert self.action_space.contains(action), err_msg
 
         self.step_count += 1
@@ -697,7 +648,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         #update current battery reading 
 
-        if self.current_max17048["cell_voltage"] <= 3.0:
+        if self.agent_drowned() > 0:
             terminated = True
         else:
             terminated = False
@@ -706,7 +657,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         #end of step
         time.sleep(2)
-        print("Action: {}, Voltage: {:.3f}, Reward: {}".format(action, self.current_max17048["cell_voltage"], reward))
+        print("Action: {}, Reward: {}".format(action, reward))
         
         info = self._get_info()
 
