@@ -308,6 +308,8 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         
         #Sensor accessible to the agent:  
         
+### ! ### For Etienne : is this later substituted for something else that connects to mbk?         
+        
             self.waterORGANobs_1 = WaterOrgan1(self.np_random)
             self.waterORGANobs_2 = WaterOrgan2(self.np_random)
             self.waterORGANobs_3 = WaterOrgan3(self.np_random)
@@ -329,22 +331,22 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
 
 
-        heart_beat_rythm = HeartBeatRythm
+        heart_beat_rythm = HeartBeatRythm() 
 
 
         #why is this 10bit integer value if sensor data is float?
         ## N: No idea
         
-        self.Sensor_1_max = 1023  # waterORGANobs_1
+        self.Sensor_1_max = 1023  # waterORGANobs_1 / to be adjusted when sensor arrives
         self.Sensor_1_min = 0
 
-        self.Sensor_2_max = 1023  # waterORGANobs_2
+        self.Sensor_2_max = 1023  # waterORGANobs_2 / to be adjusted when sensor arrives
         self.Sensor_2_min = 0
         
-        self.Sensor_3_max = 1023  # waterORGANobs_3
+        self.Sensor_3_max = 1023  # waterORGANobs_3 / to be adjusted when sensor arrives
         self.Sensor_3_min = 0
         
-        self.Sensor_4_max = 1023  # heart_full_sensor
+        self.Sensor_4_max = 1023  # heart_full_sensor / to be adjusted when heart constructed
         self.Sensor_4_min = 0
         
 
@@ -358,35 +360,28 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
 
 
+ ### ! ### For Etienne : Are all the sensors from misbikit supposed to be in dictionary format? Is it how they arrive. I think maybe you explained it to me but I forgot.
+ 
+        
+ 
+        self.waterORGANobs_1 = {
+            "level" = 0;
+        }
 
-        
+        self.waterORGANobs_2 = {
+            "level" = 0;
+        }
 
-'''
-        self.last_ina219 = {
-            "current" : 0,
-            "voltage" : 0,
-            "shunt_voltage" : 0,
-            "power" : 0
-        
-        }
-        self.current_ina219 = {
-            "current" : 0,
-            "voltage" : 0,
-            "shunt_voltage" : 0,
-            "power" : 0
-        }
-        self.last_max17048 = {
-            "cell_voltage" : 0,
-            "percent" : 0,
-            "rate":0
-        }
-        self.current_max17048 = {
-            "cell_voltage" : 3.7,
-            "percent" : 50,
-            "rate":0
+        self.waterORGANobs_3 = {
+            "level" = 0;
         }
         
- '''
+        self.heart_full_sensor = {
+            "full" = 0;
+        }
+     
+     
+     
                
         # define what actions are available to the agent
         self.action_space = spaces.Discrete(8)
@@ -395,20 +390,20 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         self.observation_space = spaces.Box(
             low=np.array(
                 [
-                    self.Sensor_1_min, 
-                    self.Sensor_2_min,
-                    self.Sensor_3_min,
-                    self.Sensor_4_min,
+                    self.Sensor_1_min, #waterORGANobs_1
+                    self.Sensor_2_min, #waterORGANobs_2
+                    self.Sensor_3_min, #waterORGANobs_3
+                    self.Sensor_4_min, #heart_beat_rythm
                     
                 ],
                 dtype=np.float32,
             ),
             high=np.array(
                 [
-                    self.Sensor_1_max,
-                    self.Sensor_2_max,
-                    self.Sensor_3_max,
-                    self.Sensor_4_max,
+                    self.Sensor_1_max, #waterORGANobs_1
+                    self.Sensor_2_max, #waterORGANobs_2
+                    self.Sensor_3_max, #waterORGANobs_3
+                    self.Sensor_4_max, #heart_beat_rythm
                 ],
                 dtype=np.float32,
             ),
@@ -422,13 +417,14 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             
 
     
-### ! ### For Etienne - not sure what this is, I'll leave this for now untouched
+### ! ### For Etienne - not sure how to fill in the right side of the sensors, added in code below but commented out
    
     def _parse_received_data(self, val):
         print("popa")
         i2c_port = val["ports"][3]
         ina = None
         max17048 = None
+# mbk File: config.json : iterating through an i2c_port["units"] list to find specific sensor configurations (sensor_ina219 and sensor_max17048) and assign them to variables.  
         for u in i2c_port["units"]:
             if u["name"] == "sensor_ina219":
                 ina = u
@@ -438,6 +434,8 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         self.last_ina219 = self.current_ina219
         self.last_max17048 = self.current_max17048
 
+
+#This is the download from i2c / where stuff is downloaded
         self.current_ina219["current"] = ina["val"][0]
         self.current_ina219["voltage"] = ina["val"][1]
         self.current_ina219["shunt_voltage"] = ina["val"][2]
@@ -446,7 +444,14 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         self.current_max17048["percent"] = max17048["val"][1]
         self.current_max17048["rate"] = max17048["val"][2]
 
+'''
+        new sensors:
+        self.waterORGANobs_1["level"] = to be filled in
+        self.waterORGANobs_2["level"] = to be filled in
+        self.waterORGANobs_3["level"] = to be filled in
+        self.heart_full_sensor["full"] = to be filled in
 
+'''
    
     def _poll_sensor_data(self):
         while not self._sensor_poll_stop.wait(2.0):
@@ -469,13 +474,17 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         # it seemed like the second sensor was never updated in the original code so i'm only
         # updating the current sensor. If other sensors are to be sampled add it here
         
-        self.sensors_data[0] = np.float32(self.current_ina219["current"])  # Solar_panel
-        self.sensors_data[1] = np.float32(self.current_max17048["cell_voltage"])
-        self.sensors_data[2] = np.float32(self.current_ina219["current"])  # Solar_panel
-        self.sensors_data[3] = np.float32(self.heart_beat_rythm)
+        HeartBeatRythm() 
+        
+        self.sensors_data[0] = np.float32(self.waterORGANobs_1["level"])  # Water Organ 1
+        self.sensors_data[1] = np.float32(self.waterORGANobs_2["level"])  # Water Organ 2
+        self.sensors_data[2] = np.float32(self.waterORGANobs_3["level"])  # Water Organ 3
+        self.sensors_data[3] = np.float32(self.heart_beat_rythm)        # Time taken from heart vessel being empty to full
         
         self.sensors_data = np.clip(self.sensors_data, self.observation_space.low, self.observation_space.high)
 
+
+        #to be changed for sensors used in the robot
         print("Observation")
         print(self.last_ina219)
         print(self.last_max17048)
@@ -495,9 +504,9 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         """
 
         return {
-            "joint_pos": self.JointPosition,
-            "joint2_pos": self.Joint2Position,
-            "joint3_pos": self.Joint3Position,
+#            "joint_pos": self.JointPosition,
+#            "joint2_pos": self.Joint2Position,
+#            "joint3_pos": self.Joint3Position,
             "step_count": self.step_count,
         }
 
@@ -590,6 +599,7 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         super().reset(seed=seed)
         
         if board.board_id == "GENERIC_LINUX_PC":
+        #to be substituted for actual readings from mbk    
             self.ina219 = INA219(self.np_random)
             self.dummy_sensor = DigitalInOut(self.np_random)
 
@@ -634,6 +644,14 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         err_msg = f"{action!r} ({type(action)}) invalid"
         
         assert self.action_space.contains(action), err_msg
+        
+        hfs = self.heart_full_sensor 
+        
+        hpc = HeartPumpControl
+        
+        water_pump = hpc.process_data
+        
+        
 
         self.step_count += 1
         truncated = False
@@ -641,12 +659,26 @@ class sunday5(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
         #update environment based on taken action. 
         #program environment logic here
-        self._move_robot(action)
-        observation = self._get_obs()
+        
+        #when the heart vessel is empty (0.2 is accounting for some residual water)
+        
+        if self.heart_full_sensor =< 0.2:
+           
+            # decide on action - which solenoid valve combination to open
+            
+            self._move_robot(action)
+            
+            # start pump to empty heart vessel - automatic
+            
+            self.water_pump
+            
+            #get observations (3 water organs + last time it took to fill in the heart)
+            
+            observation = self._get_obs()
 
         
         
-        #update current battery reading 
+        #update if agent drowned itself
 
         if self.agent_drowned() > 0:
             terminated = True
