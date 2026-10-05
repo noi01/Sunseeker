@@ -17,5 +17,6 @@
 #include "sensors/units/i2c/UnitUltrasonic_I2C.h"
 #include "sensors/units/i2c/UnitMAX17048.h"
 #include "sensors/units/i2c/UnitINA219.h"
+#include "sensors/units/i2c/UnitWaterLevel.h"
 
 #endif  // MBK_I2C_UNITS_H

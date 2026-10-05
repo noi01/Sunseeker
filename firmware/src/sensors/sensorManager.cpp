@@ -42,20 +42,36 @@ bool resolve_port_pins(const uint8_t port_index, uint8_t& analog_pin, uint8_t& d
 			return false;
 	}
 #elif defined(ARDUINO_FEATHER_ESP32)
+	// Feather exposes six single-pin logical ports (indices 0..5) plus one
+	// I2C port (index 6). Single-pin ports return the same GPIO for both the
+	// analog and digital slots so PortC/GenericUnit operate on one physical
+	// pin. Ports backed by ADC2 (12/27/15) are digital-only while WiFi is on.
 	switch (port_index) {
 		case 0:
-			analog_pin = pins::analogSensor1;
-			digital_pin = pins::digitalSensor1;
+			analog_pin = pins::portPin1;
+			digital_pin = pins::portPin1;
 			return true;
 		case 1:
-			analog_pin = pins::analogSensor2;
-			digital_pin = pins::digitalSensor2;
+			analog_pin = pins::portPin2;
+			digital_pin = pins::portPin2;
 			return true;
 		case 2:
-			analog_pin = pins::analogSensor3;
-			digital_pin = pins::digitalSensor3;
+			analog_pin = pins::portPin3;
+			digital_pin = pins::portPin3;
 			return true;
 		case 3:
+			analog_pin = pins::portPin4;
+			digital_pin = pins::portPin4;
+			return true;
+		case 4:
+			analog_pin = pins::portPin5;
+			digital_pin = pins::portPin5;
+			return true;
+		case 5:
+			analog_pin = pins::portPin6;
+			digital_pin = pins::portPin6;
+			return true;
+		case 6:
 			analog_pin = pins::sda;
 			digital_pin = pins::scl;
 			return true;

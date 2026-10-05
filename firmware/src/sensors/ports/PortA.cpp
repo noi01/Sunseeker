@@ -146,6 +146,9 @@ Unit* PortA::create_unit(UnitModel model, int index, uint8_t address) {
     case UnitModel::sensor_max17048:
       unit = std::make_unique<UnitMAX17048>(bus);
      break;
+    case UnitModel::sensor_water_level:
+      unit = std::make_unique<UnitWaterLevel>(bus);
+     break;
     default:
       _logger.warningln("Port %d create_unit() unsupported model %d", id, static_cast<int>(model));
       return nullptr;

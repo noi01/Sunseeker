@@ -47,6 +47,16 @@ namespace pins{
     const uint8_t digitalSensor2{27}; // A6 - ADC2
     const uint8_t digitalSensor3{15}; // Digital IO
 
+    // Single-pin logical ports (indices 0..5). Each port exposes exactly one
+    // GPIO: analog-capable ports use ADC1, the rest are digital-only while the
+    // WiFi radio is active (ADC2 is unavailable for analogRead).
+    const uint8_t portPin1{39}; // A3 - ADC1
+    const uint8_t portPin2{33}; // A9 - ADC1
+    const uint8_t portPin3{32}; // A7 - ADC1
+    const uint8_t portPin4{12}; // A8 - ADC2 (digital-only with WiFi)
+    const uint8_t portPin5{27}; // A6 - ADC2 (digital-only with WiFi)
+    const uint8_t portPin6{15}; // Digital IO - ADC2 (digital-only with WiFi)
+
     const uint8_t sda{SDA};
     const uint8_t scl{SCL};
     const uint8_t tx{TX};

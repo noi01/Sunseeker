@@ -17,6 +17,7 @@ enum class UnitModel : uint8_t {
 
   // Generic profiles
   sensor_generic,
+  sensor_ouput,
   
   // Sensor modules
   sensor_mic,
@@ -30,6 +31,7 @@ enum class UnitModel : uint8_t {
   sensor_pahub,
   sensor_max17048,
   sensor_ina219,
+  sensor_water_level,
   
   // HMI modules
   hmi_button,
@@ -74,6 +76,9 @@ constexpr UnitModelEntry k_unit_model_map[] = {
     {UnitModel::sensor_pahub,          "sensor_pahub",          0x76},
     {UnitModel::sensor_pahub,          "sensor_pahub",          0x77},
     {UnitModel::sensor_ina219,         "sensor_ina219",         0x40},
+    // Water level sensor exposes two modules; 0x78 (high) is unique and used
+    // for detection. 0x77 (low) overlaps the PAHUB address range.
+    {UnitModel::sensor_water_level,    "sensor_water_level",    0x78},
     {UnitModel::sensor_max17048,       "sensor_max17048",       0x36},
     {UnitModel::hmi_button,            "hmi_button",            0},
     {UnitModel::hmi_fader,             "hmi_fader",             0},
