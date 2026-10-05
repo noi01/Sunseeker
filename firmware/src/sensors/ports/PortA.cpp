@@ -28,10 +28,10 @@ bool PortA::begin() {
     return true;
   }
 
-  Wire.setPins(pins[1], pins[0]);
+  Wire.setPins(pins[0], pins[1]);
 
   if (!Wire.begin()) {
-    _logger.errorln("Failed to initialize port %d of type A on pins scl: %d sda: %d",id, pins[0], pins[1]);
+    _logger.errorln("Failed to initialize port %d of type A on pins sda: %d scl: %d",id, pins[0], pins[1]);
     return false;
   }
   Wire.setTimeOut(100);

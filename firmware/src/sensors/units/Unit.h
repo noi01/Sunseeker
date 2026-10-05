@@ -68,6 +68,14 @@ class Unit {
   }
   virtual void set_alpha(float a){_alpha = a;}
 
+  /**
+   * @brief Drive a unit output. Base units are input-only and ignore it.
+   *
+   * @param value Requested output state (true = HIGH/on).
+   * @return true if the unit actually drove an output line.
+   */
+  virtual bool set_output_value(bool value) { (void)value; return false; }
+
      uint16_t raw[2];
   float _mapped[2];
   float _filtered[2];

@@ -27,6 +27,9 @@ Unit* PortC::create_unit(UnitModel model, int index, uint8_t address) {
     case UnitModel::hmi_button:
       unit.reset(new ButtonUnit(*this, model));
       break;
+    case UnitModel::sensor_output:
+      unit.reset(new OutputUnit(*this, model));
+      break;
     default:
       return nullptr;
   }
@@ -34,7 +37,6 @@ Unit* PortC::create_unit(UnitModel model, int index, uint8_t address) {
   if (!unit) {
     return nullptr;
   }
-   _logger.warningln("Port %d create_unit() unsupported model %d", id, static_cast<int>(model));
 
   unit->set_model(model);
   unit->set_id(id);

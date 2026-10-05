@@ -337,6 +337,43 @@ Unit* SensorManager::create_unit_routine(uint8_t port_index, UnitModel model){
 	return unit;
 }
 
+bool SensorManager::set_output(uint8_t port_index, bool value) {
+	if (!is_index_valid(port_index)) {
+		return false;
+	}
+
+	Port* port = port_at(port_index);
+	if (!port) {
+		_logger.warningln("Output command for port=%d with no valid binding", port_index);
+		return false;
+	}
+
+	if (port->type() != PortType::port_c) {
+		_logger.warningln("Output command for port=%d rejected: port is not type C", port_index);
+		return false;
+	}
+
+	// Never drive the shared I2C lines (sda/scl) as a generic output.
+	if (port->pins[0] == pins::sda || port->pins[0] == pins::scl) {
+		_logger.warningln("Output command for port=%d rejected: pin is an I2C line", port_index);
+		return false;
+	}
+
+	bool driven = false;
+	for (uint8_t u = 0; u < port->unit_count(); ++u) {
+		Unit* unit = port->unit_at(u);
+		if (unit && unit->set_output_value(value)) {
+			driven = true;
+		}
+	}
+
+	if (!driven) {
+		_logger.warningln("Output command for port=%d found no output unit", port_index);
+	}
+
+	return driven;
+}
+
 bool SensorManager::scan(uint8_t idx) {
 	bool changed = false;
 

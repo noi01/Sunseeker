@@ -232,6 +232,13 @@ void MisBKit::execute_action(JsonObject action){
         break;
       }
   
+      case CMD_PORT_OUTPUT: {
+        const uint8_t port_id = action["id"] | 0;
+        const bool value = action["val"].as<int>() != 0;
+        sensor_manager.set_output(port_id, value);
+        break;
+      }
+
       case CMD_SAVE_SENSOR_CONFIG:
         Log.traceln("Saving sensor config");
         save_configuration();

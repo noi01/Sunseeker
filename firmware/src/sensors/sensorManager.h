@@ -53,6 +53,7 @@ class SensorManager {
   
   Unit* create_unit_routine(uint8_t port_index, UnitModel model);
   void autodetect_port(uint8_t port_index);
+  bool set_output(uint8_t port_index, bool value);
   void initialize();
   void add_data_to_json(JsonDocument& doc);
   void update();

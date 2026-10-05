@@ -17,7 +17,7 @@ enum class UnitModel : uint8_t {
 
   // Generic profiles
   sensor_generic,
-  sensor_ouput,
+  sensor_output,
   
   // Sensor modules
   sensor_mic,
@@ -59,6 +59,7 @@ struct UnitSpec {
 constexpr UnitModelEntry k_unit_model_map[] = {
     {UnitModel::none,                  "none",                  0},
     {UnitModel::sensor_generic,        "sensor_generic",        0},
+    {UnitModel::sensor_output,         "sensor_output",         0},
     {UnitModel::sensor_mic,            "sensor_mic",            0},
     {UnitModel::sensor_light,          "sensor_light",          0},
     {UnitModel::sensor_ultrasonic_io,  "sensor_ultrasonic_io",  0},
@@ -74,7 +75,7 @@ constexpr UnitModelEntry k_unit_model_map[] = {
     {UnitModel::sensor_pahub,          "sensor_pahub",          0x74},
     {UnitModel::sensor_pahub,          "sensor_pahub",          0x75},
     {UnitModel::sensor_pahub,          "sensor_pahub",          0x76},
-    {UnitModel::sensor_pahub,          "sensor_pahub",          0x77},
+    {UnitModel::sensor_pahub,          "sensor_pahub",          0},
     {UnitModel::sensor_ina219,         "sensor_ina219",         0x40},
     // Water level sensor exposes two modules; 0x78 (high) is unique and used
     // for detection. 0x77 (low) overlaps the PAHUB address range.

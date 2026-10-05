@@ -28,6 +28,7 @@ enum Command_t {
   CMD_SENSOR_DATA,
   CMD_SAVE_SENSOR_CONFIG,
   CMD_SENSOR_SCAN,
+  CMD_PORT_OUTPUT,
   CMD_SYNC_WHEEL,
   CMD_SYNC_JOINT,
   CMD_SYNC_JOINT_VELOCITY,
@@ -106,6 +107,8 @@ struct Command{
             cmd = CMD_SENSOR_CONFIG;
           } else if (strcmp(cmd_str, "sensor_scan") == 0) {
             cmd = CMD_SENSOR_SCAN;
+          } else if (strcmp(cmd_str, "port_output") == 0) {
+            cmd = CMD_PORT_OUTPUT;
           } else if (strcmp(cmd_str, "sensordata") == 0) {
             cmd = CMD_SENSOR_DATA;
           } else if (strcmp(cmd_str, "sensorsave") == 0) {
