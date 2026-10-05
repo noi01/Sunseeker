@@ -406,6 +406,8 @@ void SensorManager::add_data_to_json(JsonDocument &doc) {
 			}
 		}
 	});
+//serializeJsonPretty(doc,Serial);
+//Serial.println();
 }
 
 void SensorManager::update() {

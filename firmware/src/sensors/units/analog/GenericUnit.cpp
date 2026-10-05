@@ -26,6 +26,8 @@ bool GenericUnit::sample_impl(uint32_t now_ms) {
     
     _filtered[0] = apply_lowpass(map_to_float(raw[0],0,4095), _filtered[0]);
     _filtered[1] = apply_lowpass(map_to_float(raw[1],0,1), _filtered[1]);
+
+    Serial.println(raw[1]);
     
     return true;
 }
