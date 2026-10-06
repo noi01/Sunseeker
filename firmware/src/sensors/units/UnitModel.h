@@ -16,7 +16,8 @@ enum class UnitModel : uint8_t {
   none = 0,
 
   // Generic profiles
-  sensor_generic,
+  sensor_analog,
+  sensor_digital,
   sensor_output,
   
   // Sensor modules
@@ -58,7 +59,8 @@ struct UnitSpec {
 // Keep this table in sync with the UnitModel enum.
 constexpr UnitModelEntry k_unit_model_map[] = {
     {UnitModel::none,                  "none",                  0},
-    {UnitModel::sensor_generic,        "sensor_generic",        0},
+    {UnitModel::sensor_analog,         "sensor_analog",         0},
+    {UnitModel::sensor_digital,        "sensor_digital",        0},
     {UnitModel::sensor_output,         "sensor_output",         0},
     {UnitModel::sensor_mic,            "sensor_mic",            0},
     {UnitModel::sensor_light,          "sensor_light",          0},

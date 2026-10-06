@@ -9,6 +9,8 @@
 #define MBK_ANALOG_UNITS_H
 
 #include "sensors/units/analog/GenericUnit.h"
+#include "sensors/units/analog/AnalogInputUnit.h"
+#include "sensors/units/analog/DigitalInputUnit.h"
 #include "sensors/units/analog/ButtonUnit.h"
 #include "sensors/units/analog/FaderUnit.h"
 #include "sensors/units/analog/OutputUnit.h"

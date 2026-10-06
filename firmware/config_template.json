@@ -8,7 +8,7 @@
             "type":"portC",
             "units":[
                 {
-                    "model":"sensor_generic",
+                    "model":"sensor_analog",
                     "io":0,
                     "alpha":0.5
                 }
@@ -18,7 +18,7 @@
             "type":"portC",
             "units":[
                 {
-                    "model":"sensor_generic",
+                    "model":"sensor_analog",
                     "io":0,
                     "alpha":0.5
                 }
@@ -28,7 +28,7 @@
             "type":"portC",
             "units":[
                 {
-                    "model":"sensor_generic",
+                    "model":"sensor_analog",
                     "io":0,
                     "alpha":0.5
                 }
@@ -38,7 +38,7 @@
             "type":"portC",
             "units":[
                 {
-                    "model":"sensor_generic",
+                    "model":"sensor_analog",
                     "io":0,
                     "alpha":0.5
                 }

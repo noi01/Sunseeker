@@ -87,6 +87,11 @@ class MisBKit:
     def request_sensor_data(self):
         if self.paired and self.is_connected:
             self.send(self._make_command("sensordata"))
+
+    def set_output(self, port: int, value: bool):
+        """Drive a Port C digital output (sensor_output unit) on the given port."""
+        if self.paired and self.is_connected:
+            self.send(self._make_command("port_output", id=port, val=1 if value else 0))
         
     def _handle_ws_open(self, ws):
         _ = ws

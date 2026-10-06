@@ -16,7 +16,12 @@ Unit* PortC::create_unit(UnitModel model, int index, uint8_t address) {
   }
   std::unique_ptr<Unit> unit;
   switch (model) {
-    case UnitModel::sensor_generic:
+    case UnitModel::sensor_analog:
+      unit.reset(new AnalogInputUnit(*this, model));
+      break;
+    case UnitModel::sensor_digital:
+      unit.reset(new DigitalInputUnit(*this, model));
+      break;
     case UnitModel::sensor_light:
     case UnitModel::sensor_mic:
       unit.reset(new GenericUnit(*this, model));

@@ -88,7 +88,7 @@ float alpha = 0.01;
   Logging _logger;
  private:
   uint8_t _id{0};
-  UnitModel model{UnitModel::sensor_generic};
+  UnitModel model{UnitModel::none};
   float _alpha{0};
   bool   _enable{false};
   bool   _initialized{false};
