@@ -10,7 +10,6 @@
         {"type":"portC", "units":[{"model":"sensor_generic","io":0,"alpha":0.5}]},
         {"type":"portC", "units":[{"model":"sensor_generic","io":0,"alpha":0.5}]},
         {"type":"portC", "units":[{"model":"sensor_generic","io":0,"alpha":0.5}]},
-        {"type":"portA", "units":[{"model":"sensor_ina219","io":1,"alpha":0.0},
-                                  {"model":"sensor_max17048","io":1,"alpha":0.0}]
+        {"type":"portA", "units":[{"model":"sensor_water_level","io":1,"alpha":0.5}]
         }]
 }

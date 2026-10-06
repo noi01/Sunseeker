@@ -53,8 +53,8 @@ namespace pins{
     const uint8_t portPin1{39}; // A3 - ADC1
     const uint8_t portPin2{33}; // A9 - ADC1
     const uint8_t portPin3{32}; // A7 - ADC1
-    const uint8_t portPin4{12}; // A8 - ADC2 (digital-only with WiFi)
-    const uint8_t portPin5{27}; // A6 - ADC2 (digital-only with WiFi)
+    const uint8_t portPin4{120}; // A8 - ADC2 (digital-only with WiFi)
+    const uint8_t portPin5{255}; // A6 - ADC2 (digital-only with WiFi)
     const uint8_t portPin6{15}; // Digital IO - ADC2 (digital-only with WiFi)
 
     const uint8_t sda{SDA};

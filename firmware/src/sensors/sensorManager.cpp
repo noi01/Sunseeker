@@ -205,9 +205,9 @@ void SensorManager::initialize() {
 				continue;
 			}
 
-			// if (is_type_a(port)) {
-			// 	autodetect_port(i);
-			// }
+			if (is_type_a(port)) {
+				autodetect_port(i);
+			}
 		}
 	}
 
